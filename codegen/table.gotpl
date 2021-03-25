@@ -1,0 +1,63 @@
+{{ reserveImport "github.com/cloudquery/cloudquery-plugin-sdk/plugin/schema" }}
+{{ reserveImport "context" }}
+
+{{- define "BuildColumns" }}
+    {{- range $column := .}}
+       {
+       Name: {{$column.Name|quote}},
+       Type: schema.{{$column.Type|refValueType}},
+       {{- if $column.Elem }}
+        Elem: []schema.Column{
+            {{- template "BuildColumns" $column.Elem }}
+        },
+       {{- end }}
+       {{- if $column.Resolver }}
+        Resolver: {{- if $column.Resolver.Type|isNil }}{{$column.Resolver.Signature}}{{- else}}{{$column.Resolver.Type|call}}{{- end}},
+       {{- end }}
+        },
+    {{- end }}
+{{- end }}
+
+{{- define "BuildTable" }}
+    Name: {{.Name|quote}},
+    Resolver: {{.Resolver.Name}},
+    Columns: []schema.Column{
+        {{- template "BuildColumns" .Columns }}
+        },
+    {{- if $.Relations }}
+    Relations: []*schema.Table{
+        {{- range $relation := $.Relations}}
+        {
+            {{- template "BuildTable" $relation }}
+        },
+        {{- end }}
+       },
+   {{- end }}
+{{- end }}
+
+{{- define "BuildResolver" }}
+
+{{- end }}
+
+{{- define "BuildTableResolvers" }}
+ {{- template "BuildResolver" . }}
+ {{- range $resolver := .UniqueResolvers }}
+    func {{$resolver.Name}}(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan interface{}) error {
+        {{- $resolver.Body}}
+    }
+ {{- end }}
+{{- end }}
+
+
+
+func {{.Table.TypeName|go}}() *schema.Table {
+    return &schema.Table{
+       {{- template "BuildTable" .Table }}
+    }
+}
+
+// ====================================================================================================================
+//                                               Table Resolver Functions
+// ====================================================================================================================
+
+{{- template "BuildTableResolvers" .Table }}
