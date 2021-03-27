@@ -3,7 +3,6 @@ package templates
 import (
 	"bytes"
 	"fmt"
-	"github.com/cloudquery/cloudquery-plugin-sdk/plugin/schema"
 	"github.com/cloudquery/cq-gen/code"
 	"github.com/cloudquery/cq-gen/rewrite"
 	"github.com/modern-go/reflect2"
@@ -112,41 +111,13 @@ func Funcs() template.FuncMap {
 		"lookupImport":  CurrentImports.Lookup,
 		"ucFirst":       UcFirst,
 		"lcFirst":       LcFirst,
-		"isNil": func(i interface{})  bool{
+		"isNil": func(i interface{}) bool {
 			return reflect2.IsNil(i)
 		},
-		"go":            ToGo,
-		"ref":           ref,
-		"call":          Call,
-		// TODO: move out of here
-		"refValueType": func(i schema.ValueType) string {
-			switch i {
-			case schema.TypeBool:
-				return "TypeBool"
-			case schema.TypeInt:
-				return "TypeInt"
-			case schema.TypeFloat:
-				return "TypeFloat"
-			case schema.TypeUUID:
-				return "TypeUUID"
-			case schema.TypeString:
-				return "TypeString"
-			case schema.TypeJSON:
-				return "TypeJSON"
-			case schema.TypeIntArray:
-				return "TypeIntArray"
-			case schema.TypeStringArray:
-				return "TypeStringArray"
-			case schema.TypeTimestamp:
-				return "TypeTimestamp"
-			case schema.TypeEmbedded:
-				return "TypeEmbedded"
-			case schema.TypeInvalid:
-				fallthrough
-			default:
-				panic("invalid type")
-			}
-		},
+		"go":           ToGo,
+		"ref":          ref,
+		"call":         Call,
+		"refValueType": refValueType,
 	}
 }
 

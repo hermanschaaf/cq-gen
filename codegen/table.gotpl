@@ -6,11 +6,6 @@
        {
        Name: {{$column.Name|quote}},
        Type: schema.{{$column.Type|refValueType}},
-       {{- if $column.Elem }}
-        Elem: []schema.Column{
-            {{- template "BuildColumns" $column.Elem }}
-        },
-       {{- end }}
        {{- if $column.Resolver }}
         Resolver: {{- if $column.Resolver.Type|isNil }}{{$column.Resolver.Signature}}{{- else}}{{$column.Resolver.Type|call}}{{- end}},
        {{- end }}

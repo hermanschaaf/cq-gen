@@ -116,22 +116,17 @@ func (b builder) buildTable(resource config.ResourceConfig) (*TableDefinition, e
 		}
 
 		switch valueType {
-		case schema.TypeEmbedded:
+		case TypeEmbedded:
 			columns, err := buildEmbeddedColumns(field.Name(), getNamedType(field.Type()), colCfg)
 			if err != nil {
 				return nil, err
 			}
-			table.Columns = append(table.Columns, ColumnDefinition{
-				Name: columnName,
-				Type: valueType,
-				Elem: columns,
-			})
+			table.Columns = append(table.Columns, columns...)
 		default:
 			table.Columns = append(table.Columns, ColumnDefinition{
 				Name: columnName,
 				Type: valueType,
 			})
-
 		}
 	}
 
@@ -185,7 +180,7 @@ func getNamedType(typ types.Type) *types.Named {
 
 func buildEmbeddedColumns(fieldName string, named *types.Named, cfg config.ColumnConfig) ([]ColumnDefinition, error) {
 	st := named.Underlying().(*types.Struct)
-	columns := make([]ColumnDefinition, st.NumFields())
+	columns := make([]ColumnDefinition, 0)
 
 	for i := 0; i < st.NumFields(); i++ {
 		field, tag := st.Field(i), st.Tag(i)
@@ -197,22 +192,31 @@ func buildEmbeddedColumns(fieldName string, named *types.Named, cfg config.Colum
 		if valueType == schema.TypeInvalid {
 			return nil, fmt.Errorf("unsupported type %T", field.Type())
 		}
-
 		columnName := strings.ToLower(fmt.Sprintf("%s_%s", strcase.ToSnake(fieldName), strcase.ToSnake(field.Name())))
 		if cfg.SkipPrefix {
 			columnName = strings.ToLower(strcase.ToSnake(field.Name()))
 		}
-
-		columns[i] = ColumnDefinition{
-			Name:     columnName,
-			Type:     valueType,
-			Resolver: &ResolverDefinition{Signature: fmt.Sprintf("schema.PathResolver(\"%s\")", fmt.Sprintf("%s.%s", fieldName, field.Name()))},
+		switch valueType {
+		case TypeEmbedded:
+			embeddedCols, err := buildEmbeddedColumns(field.Name(), getNamedType(field.Type()), cfg)
+			if err != nil {
+				return nil, err
+			}
+			columns = append(columns, embeddedCols...)
+		default:
+			columns = append(columns, ColumnDefinition{
+				Name:     columnName,
+				Type:     valueType,
+				Resolver: &ResolverDefinition{Signature: fmt.Sprintf("schema.PathResolver(\"%s\")", fmt.Sprintf("%s.%s", fieldName, field.Name()))},
+			})
 		}
+
 	}
 	return columns, nil
 }
 
 const TypeRelation schema.ValueType = -1
+const TypeEmbedded schema.ValueType = -2
 
 func getValueType(typ types.Type) schema.ValueType {
 	if vt := getUniqueStructs(typ); vt != schema.TypeInvalid {
@@ -226,7 +230,7 @@ func getValueType(typ types.Type) schema.ValueType {
 	case *types.Named:
 		return getValueType(t.Underlying())
 	case *types.Struct:
-		return schema.TypeEmbedded
+		return TypeEmbedded
 	case *types.Slice:
 		valueType := getValueType(t.Elem())
 		switch valueType {
@@ -234,7 +238,7 @@ func getValueType(typ types.Type) schema.ValueType {
 			return schema.TypeIntArray
 		case schema.TypeString:
 			return schema.TypeString
-		case schema.TypeEmbedded:
+		case TypeEmbedded:
 			return TypeRelation
 		default:
 			return schema.TypeInvalid
