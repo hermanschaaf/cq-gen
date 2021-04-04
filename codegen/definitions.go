@@ -59,7 +59,7 @@ func (t TableDefinition) RelationExists(name string) bool {
 		if rel.Name == name {
 			return true
 		}
-		if strings.HasSuffix(rel.TableName, rel.TableName) {
+		if strings.HasSuffix(rel.TableName, name) {
 			return true
 		}
 	}

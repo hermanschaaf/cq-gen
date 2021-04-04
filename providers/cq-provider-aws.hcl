@@ -1418,6 +1418,11 @@ resource "aws" "s3" "buckets" {
       skip_prefix = true
     }
   }
+
+  relation "aws" "s3" "cors_rules" {
+    path = "github.com/aws/aws-sdk-go-v2/service/s3/types.CORSRule"
+  }
+
 }
 
 resource "aws" "sns" "topics" {
