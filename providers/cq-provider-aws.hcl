@@ -874,11 +874,11 @@ resource "aws" "elasticbeanstalk" "environments" {
     type = "string"
     rename = "load_balancer_domain"
   }
-
-  column "resources_load_balancer_load_balancer_name" {
-    type = "string"
-    rename = "load_balancer_name"
-  }
+//
+//  column "resources_load_balancer_load_balancer_name" {
+//    type = "string"
+//    rename = "load_balancer_name"
+//  }
 }
 
 resource "aws" "elbv2" "target_groups" {
