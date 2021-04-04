@@ -254,7 +254,11 @@ resource "aws" "ec2" "images" {
   }
 
   column "tags" {
-    // TypeJson
+    type = "json"
+    generate_resolver=true
+  }
+
+  column "product_codes" {
     type = "json"
     generate_resolver=true
   }
