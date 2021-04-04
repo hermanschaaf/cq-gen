@@ -544,45 +544,58 @@ resource "aws" "ec2" "route_tables" {
     }
   }
 
+  column "route_table_id" {
+    // TypeJson
+    type = "string"
+    rename = "resource_id"
+  }
+
   column "tags" {
     // TypeJson
     type = "json"
     generate_resolver=true
   }
 
-}
-
-resource "aws" "ec2" "security_groups" {
-  path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.SecurityGroup"
-  ignoreError "IgnoreAccessDenied" {
-    path = "github.com/cloudquery/cq-provider-aws/provider.IgnoreAccessDeniedServiceDisabled"
-  }
-  multiplex "AwsAccountRegion" {
-    path = "github.com/cloudquery/cq-provider-aws/provider.AccountRegionMultiplex"
-  }
-  deleteFilter "AccountRegionFilter" {
-    path = "github.com/cloudquery/cq-provider-aws/provider.DeleteAccountRegionFilter"
-  }
-
-  userDefinedColumn "account_id" {
-    type = "string"
-    resolver "resolveAWSAccount" {
-      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSAccount"
+  relation "aws" "ec2" "associations" {
+    path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.RouteTableAssociation"
+    column "route_table_id" {
+      skip = true
     }
   }
 
-  userDefinedColumn "region" {
-    type = "string"
-    resolver "resolveAWSRegion" {
-      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSRegion"
-    }
-  }
-  column "tags" {
-    // TypeJson
-    type = "json"
-    generate_resolver=true
-  }
 }
+
+//resource "aws" "ec2" "security_groups" {
+//  path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.SecurityGroup"
+//  ignoreError "IgnoreAccessDenied" {
+//    path = "github.com/cloudquery/cq-provider-aws/provider.IgnoreAccessDeniedServiceDisabled"
+//  }
+//  multiplex "AwsAccountRegion" {
+//    path = "github.com/cloudquery/cq-provider-aws/provider.AccountRegionMultiplex"
+//  }
+//  deleteFilter "AccountRegionFilter" {
+//    path = "github.com/cloudquery/cq-provider-aws/provider.DeleteAccountRegionFilter"
+//  }
+//
+//  userDefinedColumn "account_id" {
+//    type = "string"
+//    resolver "resolveAWSAccount" {
+//      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSAccount"
+//    }
+//  }
+//
+//  userDefinedColumn "region" {
+//    type = "string"
+//    resolver "resolveAWSRegion" {
+//      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSRegion"
+//    }
+//  }
+//  column "tags" {
+//    // TypeJson
+//    type = "json"
+//    generate_resolver=true
+//  }
+//}
 
 resource "aws" "ec2" "subnets" {
   path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.Subnet"
@@ -836,11 +849,11 @@ resource "aws" "eks" "clusters" {
     }
   }
 
-  column "tags" {
-    // TypeJson
-    type = "json"
-    generate_resolver=true
-  }
+//  column "tags" {
+//    // TypeJson
+//    type = "json"
+//    generate_resolver=true
+//  }
 
 }
 
