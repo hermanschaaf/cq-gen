@@ -165,6 +165,7 @@ github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDk
 github.com/cloudquery/cloudquery v0.11.5/go.mod h1:Y+6Zrr6W93/4c4l9oQBKDnYLWtNw9iFv8gtbkVoJ0y0=
 github.com/cloudquery/cq-provider-sdk v0.0.1 h1:u3NwVztmP81r0SKSEJRDO4DD43X2hwO99//lTStS0HI=
 github.com/cloudquery/cq-provider-sdk v0.0.1/go.mod h1:H2C2T55E6DCFW2w55BQ9Fdemc6J5MStfkGwALFWCOCg=
+github.com/cloudquery/faker/v3 v3.7.1/go.mod h1:1b8WVG9Gh0T2hVo1a8dWeXfu0AhqSB6J/mmJaesqOeo=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=

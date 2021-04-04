@@ -874,11 +874,11 @@ resource "aws" "elasticbeanstalk" "environments" {
     type = "string"
     rename = "load_balancer_domain"
   }
-//
-//  column "resources_load_balancer_load_balancer_name" {
-//    type = "string"
-//    rename = "load_balancer_name"
-//  }
+
+  column "resources_load_balancer_load_balancer_name" {
+    type = "string"
+    rename = "load_balancer_name"
+  }
 }
 
 resource "aws" "elbv2" "target_groups" {
@@ -1399,6 +1399,21 @@ resource "aws" "sns" "topics" {
 resource "aws" "s3" "buckets" {
   path = "github.com/aws/aws-sdk-go-v2/service/s3/types.Bucket"
 
+  ignoreError "IgnoreAccessDenied" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.IgnoreAccessDeniedServiceDisabled"
+  }
+  multiplex "AwsAccountRegion" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.AccountMultiplex"
+  }
+  deleteFilter "AccountRegionFilter" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.DeleteAccountFilter"
+  }
+
+  postResourceResolver "resolveS3BucketsAttributes" {
+    path = "github.com/cloudquery/cq-provider-sdk/plugin/schema.RowResolver"
+    generate = true
+  }
+
   userDefinedColumn "account_id" {
     type = "string"
     resolver "ResolveAwsAccount" {
@@ -1408,7 +1423,26 @@ resource "aws" "s3" "buckets" {
 
   userDefinedColumn "region" {
     type = "string"
-    generate_resolver=true
+  }
+
+  userDefinedColumn "logging_target_prefix" {
+    type = "string"
+  }
+
+  userDefinedColumn "logging_target_bucket" {
+    type = "string"
+  }
+
+  userDefinedColumn "versioning_status" {
+    type = "string"
+  }
+
+  userDefinedColumn "versioning_mfa_delete" {
+    type = "string"
+  }
+
+  userDefinedColumn "policy" {
+    type = "json"
   }
 
   relation "aws" "s3" "grants" {
@@ -1421,7 +1455,22 @@ resource "aws" "s3" "buckets" {
 
   relation "aws" "s3" "cors_rules" {
     path = "github.com/aws/aws-sdk-go-v2/service/s3/types.CORSRule"
+    column "id" {
+      rename = "resource_id"
+    }
   }
+
+//  relation "aws" "s3" "encryption_rules" {
+//    path = "github.com/aws/aws-sdk-go-v2/service/s3/types.ServerSideEncryptionRule"
+//
+//    column "apply_server_side_encryption_by_default_s_s_e_algorithm" {
+//      rename = "sse_algorithm"
+//
+//    }
+//    column "apply_server_side_encryption_by_default_k_m_s_master_key_id" {
+//      rename = "kms_master_key_id"
+//    }
+//  }
 
 }
 
