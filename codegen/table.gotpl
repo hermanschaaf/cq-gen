@@ -1,54 +1,59 @@
-{{ reserveImport "github.com/cloudquery/cloudquery-plugin-sdk/plugin/schema" }}
+{{ reserveImport "github.com/cloudquery/cq-provider-sdk/plugin/schema" }}
 {{ reserveImport "context" }}
 
 {{- define "BuildColumns" }}
     {{- range $column := .}}
-       {
-       Name: {{$column.Name|quote}},
-       Type: schema.{{$column.Type|refValueType}},
-       {{- if $column.Resolver }}
-        Resolver: {{- if $column.Resolver.Type|isNil }}{{$column.Resolver.Signature}}{{- else}}{{$column.Resolver.Type|call}}{{- end}},
-       {{- end }}
+        {
+        Name: {{$column.Name|quote}},
+        Type: schema.{{$column.Type.String}},
+        {{- if $column.Resolver }}
+            Resolver: {{$column.Resolver|call}},
+        {{- end }}
         },
     {{- end }}
 {{- end }}
 
 {{- define "BuildTable" }}
-    Name: {{.Name|quote}},
+    Name: {{.TableName|quote}},
     Resolver: {{.Resolver.Name}},
+    {{- if .MultiplexFunc }}
+        Multiplex: {{.MultiplexFunc|call}},
+    {{- end }}
+    {{- if .IgnoreErrorFunc }}
+        IgnoreError: {{.IgnoreErrorFunc|call}},
+    {{- end }}
+    {{- if .DeleteFilterFunc }}
+        DeleteFilter: {{.DeleteFilterFunc|call}},
+    {{- end }}
+    {{- if .PostResourceResolver }}
+        PostResourceResolver: {{.PostResourceResolver|call}},
+    {{- end }}
     Columns: []schema.Column{
-        {{- template "BuildColumns" .Columns }}
-        },
+    {{- template "BuildColumns" .Columns }}
+    },
     {{- if $.Relations }}
-    Relations: []*schema.Table{
+        Relations: []*schema.Table{
         {{- range $relation := $.Relations}}
-        {
+            {
             {{- template "BuildTable" $relation }}
-        },
+            },
         {{- end }}
-       },
-   {{- end }}
-{{- end }}
-
-{{- define "BuildResolver" }}
-
+        },
+    {{- end }}
 {{- end }}
 
 {{- define "BuildTableResolvers" }}
- {{- template "BuildResolver" . }}
- {{- range $resolver := .UniqueResolvers }}
-    func {{$resolver.Name}}(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan interface{}) error {
-        {{- $resolver.Body}}
-    }
- {{- end }}
+    {{- range $resolver := .UniqueResolvers }}
+        func {{$resolver.Name}}{{$resolver.Arguments}} {
+        {{- $resolver.Body}}}
+    {{- end }}
 {{- end }}
 
 
-
-func {{.Table.TypeName|go}}() *schema.Table {
-    return &schema.Table{
-       {{- template "BuildTable" .Table }}
-    }
+func {{.Table.DomainName|go}}() *schema.Table {
+return &schema.Table{
+{{- template "BuildTable" .Table }}
+}
 }
 
 // ====================================================================================================================

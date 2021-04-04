@@ -1,7 +1,8 @@
 package config
 
 import (
-	"github.com/cloudquery/cloudquery-plugin-sdk/plugin/schema"
+	"fmt"
+	"github.com/cloudquery/cq-gen/code"
 	"github.com/creasty/defaults"
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
@@ -12,14 +13,49 @@ type Config struct {
 	Resources       []ResourceConfig `hcl:"resource,block"`
 }
 
+func (c Config) GetResource(resource string) (ResourceConfig, error) {
+	for _, r := range c.Resources {
+		if r.Name == resource {
+			return r, nil
+		}
+	}
+	return ResourceConfig{}, fmt.Errorf("didn't find resource %s in config", resource)
+}
+
 type ResourceConfig struct {
-	Service           string           `hcl:"service,label"`
-	Domain            string           `hcl:"domain,label"`
-	Name              string           `hcl:"name,label"`
-	Path              string           `hcl:"path"`
+	Service string `hcl:"service,label"`
+	Domain  string `hcl:"domain,label"`
+	Name    string `hcl:"name,label"`
+	Path    string `hcl:"path,optional"`
+
 	Columns           []ColumnConfig   `hcl:"column,block"`
 	Relations         []ResourceConfig `hcl:"relation,block"`
 	UserDefinedColumn []ColumnConfig   `hcl:"userDefinedColumn,block"`
+
+	IgnoreError          *FunctionConfig `hcl:"ignoreError,block"`
+	Multiplex            *FunctionConfig `hcl:"multiplex,block"`
+	DeleteFilter         *FunctionConfig `hcl:"deleteFilter,block"`
+	PostResourceResolver *FunctionConfig `hcl:"postResourceResolver,block"`
+}
+
+type FunctionConfig struct {
+	Name     string `hcl:"name,label"`
+	Body     string `hcl:"body,optional"`
+	Path     string `hcl:"path"`
+	Generate bool   `hcl:"generate,optional"`
+}
+
+func (r ResourceConfig) GetRelationConfig(name string) *ResourceConfig {
+	for _, r := range r.Relations {
+		if r.Name == name {
+			return &r
+
+		}
+		if _, typeName := code.PkgAndType(r.Path); typeName == name {
+			return &r
+		}
+	}
+	return nil
 }
 
 func (r ResourceConfig) GetColumnConfig(name string) ColumnConfig {
@@ -35,11 +71,17 @@ func (r ResourceConfig) GetColumnConfig(name string) ColumnConfig {
 }
 
 type ColumnConfig struct {
-	Name         string           `hcl:"name,label"`
-	SkipPrefix   bool             `hcl:"skip_prefix,optional" defaults:"false"`
-	Skip         bool             `hcl:"skip,optional" defaults:"false"`
-	Type         schema.ValueType `hcl:"type,optional"`
-	ResolverPath string           `hcl:"resolver,optional"`
+	Name       string `hcl:"name,label"`
+	SkipPrefix bool   `hcl:"skip_prefix,optional" defaults:"false"`
+	Skip       bool   `hcl:"skip,optional" defaults:"false"`
+	// Whether to force a resolver creation
+	GenerateResolver bool `hcl:"generate_resolver,optional"`
+	// Unique resolver function to use
+	Resolver *FunctionConfig `hcl:"resolver,block"`
+	// Override column type, use carefully, validation will fail if interface{} of value isn't the same as expected ValueType
+	Type string `hcl:"type,optional"`
+	// Rename column name, if no resolver is passed schema.PathResolver will be used
+	Rename string `hcl:"rename,optional"`
 }
 
 func Parse(configPath string) (*Config, error) {

@@ -1,4 +1,4 @@
-package templates
+package codegen
 
 import (
 	"bytes"
@@ -99,8 +99,6 @@ func Render(opts Options) error {
 	if err != nil {
 		return err
 	}
-	// TODO: remove this
-	fmt.Print(result.String())
 	return nil
 }
 
@@ -114,10 +112,9 @@ func Funcs() template.FuncMap {
 		"isNil": func(i interface{}) bool {
 			return reflect2.IsNil(i)
 		},
-		"go":           ToGo,
-		"ref":          ref,
-		"call":         Call,
-		"refValueType": refValueType,
+		"go":   ToGo,
+		"ref":  ref,
+		"call": Call,
 	}
 }
 

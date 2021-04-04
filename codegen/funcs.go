@@ -1,7 +1,6 @@
-package templates
+package codegen
 
 import (
-	"github.com/cloudquery/cloudquery-plugin-sdk/plugin/schema"
 	"go/types"
 	"strings"
 	"unicode"
@@ -34,20 +33,53 @@ func ref(p types.Type) string {
 	return CurrentImports.LookupType(p)
 }
 
-func Call(p *types.Func) string {
-
+func Call(p *FunctionDefinition) string {
 	if p == nil {
 		return ""
 	}
-
-	path := p.Pkg().Path()
+	if p.Type == nil {
+		return p.Signature
+	}
+	path := p.Type.Pkg().Path()
 	pkg := CurrentImports.Lookup(path)
 
 	if pkg != "" {
 		pkg += "."
 	}
+	if p.Signature != "" {
+		return p.Signature
+	}
+	return pkg + p.Type.Name()
+}
 
-	return pkg + p.Name()
+func ToGoPrivate(name string) string {
+	if name == "_" {
+		return "_"
+	}
+	runes := make([]rune, 0, len(name))
+
+	first := true
+	wordWalker(name, func(info *wordInfo) {
+		word := info.Word
+		switch {
+		case first:
+			if strings.ToUpper(word) == word || strings.ToLower(word) == word {
+				// ID → id, CAMEL → camel
+				word = strings.ToLower(info.Word)
+			} else {
+				// ITicket → iTicket
+				word = LcFirst(info.Word)
+			}
+			first = false
+		case info.MatchCommonInitial:
+			word = strings.ToUpper(word)
+		case !info.HasCommonInitial:
+			word = UcFirst(strings.ToLower(word))
+		}
+		runes = append(runes, []rune(word)...)
+	})
+
+	return sanitizeKeywords(string(runes))
 }
 
 func ToGo(name string) string {
@@ -70,6 +102,17 @@ func ToGo(name string) string {
 		runes = append(runes, []rune(word)...)
 	})
 
+	return string(runes)
+}
+
+func ToSnake(name string) string {
+	runes := make([]rune, 0)
+	wordWalker(name, func(info *wordInfo) {
+		if len(runes) > 1 {
+			runes = append(runes, '_')
+		}
+		runes = append(runes, []rune(strings.ToLower(info.Word))...)
+	})
 	return string(runes)
 }
 
@@ -140,31 +183,43 @@ func wordWalker(str string, f func(*wordInfo)) {
 	}
 }
 
-func refValueType(i schema.ValueType) string {
-	switch i {
-	case schema.TypeBool:
-		return "TypeBool"
-	case schema.TypeInt:
-		return "TypeInt"
-	case schema.TypeFloat:
-		return "TypeFloat"
-	case schema.TypeUUID:
-		return "TypeUUID"
-	case schema.TypeString:
-		return "TypeString"
-	case schema.TypeJSON:
-		return "TypeJSON"
-	case schema.TypeIntArray:
-		return "TypeIntArray"
-	case schema.TypeStringArray:
-		return "TypeStringArray"
-	case schema.TypeTimestamp:
-		return "TypeTimestamp"
-	case schema.TypeInvalid:
-		fallthrough
-	default:
-		panic("invalid type")
+var keywords = []string{
+	"break",
+	"default",
+	"func",
+	"interface",
+	"select",
+	"case",
+	"defer",
+	"go",
+	"map",
+	"struct",
+	"chan",
+	"else",
+	"goto",
+	"package",
+	"switch",
+	"const",
+	"fallthrough",
+	"if",
+	"range",
+	"type",
+	"continue",
+	"for",
+	"import",
+	"return",
+	"var",
+	"_",
+}
+
+// sanitizeKeywords prevents collisions with go keywords for arguments to resolver functions
+func sanitizeKeywords(name string) string {
+	for _, k := range keywords {
+		if name == k {
+			return name + "Arg"
+		}
 	}
+	return name
 }
 
 // commonInitialisms is a set of common initialisms.
@@ -211,4 +266,6 @@ var commonInitialisms = map[string]bool{
 	"XSRF":  true,
 	"XSS":   true,
 	"AWS":   true,
+	"S3":    true,
+	"IPV6":  true,
 }
