@@ -260,11 +260,10 @@ resource "aws" "ec2" "images" {
 
   column "product_codes" {
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
 }
-
 
 resource "aws" "ec2" "instances" {
   path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.Instance"
@@ -273,7 +272,6 @@ resource "aws" "ec2" "instances" {
     type = "json"
   }
 }
-
 
 resource "aws" "ec2" "byoip_cidrs" {
   path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.ByoipCidr"
@@ -301,8 +299,6 @@ resource "aws" "ec2" "byoip_cidrs" {
     }
   }
 }
-
-
 
 resource "aws" "ec2" "instances" {
   path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.Instance"
@@ -340,9 +336,6 @@ resource "aws" "ec2" "instances" {
 
 }
 
-
-
-
 resource "aws" "ec2" "customer_gateways" {
   path = "github.com/aws/aws-sdk-go-v2/service/ec2/types.CustomerGateway"
   ignoreError "IgnoreAccessDenied" {
@@ -369,7 +362,7 @@ resource "aws" "ec2" "customer_gateways" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -399,7 +392,7 @@ resource "aws" "ec2" "flow_logs" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -432,7 +425,7 @@ resource "aws" "ec2" "internet_gateways" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
   relation "aws" "ec2" "internet_gateway_attachments" {
@@ -469,7 +462,7 @@ resource "aws" "ec2" "nat_gateways" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
   relation "aws" "ec2" "nat_gateway_address" {
@@ -506,7 +499,7 @@ resource "aws" "ec2" "network_acls" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
   relation "aws" "ec2" "network_acl_associations" {
@@ -625,7 +618,7 @@ resource "aws" "ec2" "subnets" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -657,7 +650,7 @@ resource "aws" "ec2" "vpc_peering_connections" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -689,7 +682,7 @@ resource "aws" "ec2" "vpcs" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -746,7 +739,7 @@ resource "aws" "ecr" "repositories" {
     column "tags" {
       // TypeJson
       type = "json"
-      generate_resolver=true
+      generate_resolver = true
     }
   }
 }
@@ -778,19 +771,19 @@ resource "aws" "ecs" "clusters" {
   column "settings" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
   column "statistics" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
 }
@@ -821,7 +814,7 @@ resource "aws" "efs" "filesystems" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -849,14 +842,13 @@ resource "aws" "eks" "clusters" {
     }
   }
 
-//  column "tags" {
-//    // TypeJson
-//    type = "json"
-//    generate_resolver=true
-//  }
+  //  column "tags" {
+  //    // TypeJson
+  //    type = "json"
+  //    generate_resolver=true
+  //  }
 
 }
-
 
 resource "aws" "elasticbeanstalk" "environments" {
   path = "github.com/aws/aws-sdk-go-v2/service/elasticbeanstalk/types.EnvironmentDescription"
@@ -1007,7 +999,7 @@ resource "aws" "fsx" "backups" {
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -1037,7 +1029,7 @@ resource "aws" "iam" "groups" {
 
   userDefinedColumn "policies" {
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -1095,7 +1087,7 @@ resource "aws" "iam" "policies" {
 
     column "document" {
       type = "json"
-      generate_resolver=true
+      generate_resolver = true
     }
   }
 }
@@ -1126,18 +1118,18 @@ resource "aws" "iam" "roles" {
 
   userDefinedColumn "policies" {
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
   column "assume_role_policy_document" {
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -1167,11 +1159,11 @@ resource "aws" "iam" "virtual_mfa_devices" {
 
   column "tags" {
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
   column "user_tags" {
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
   }
 }
 
@@ -1308,6 +1300,33 @@ resource "aws" "rds" "clusters" {
       path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSRegion"
     }
   }
+
+  column "pending_modified_values_pending_cloudwatch_logs_exports_log_types_to_disable" {
+    rename = "pending_cloudwatch_logs_types_to_disable"
+  }
+
+  column "pending_modified_values_pending_cloudwatch_logs_exports_log_types_to_enable" {
+    rename = "pending_cloudwatch_logs_types_to_enable"
+  }
+
+  column "tag_list" {
+    // TypeJson
+    rename = "tags"
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "aws_rds_instance_pending_modified_values_processor_features" {
+    // TypeJson
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "aws_rds_instance_processor_features" {
+    // TypeJson
+    type = "json"
+    generate_resolver = true
+  }
 }
 
 resource "aws" "rds" "certificates" {
@@ -1335,7 +1354,7 @@ resource "aws" "rds" "certificates" {
   }
 }
 
-resource "aws" "rds" "subnet_groups" {
+resource "aws" "rds" "db_subnet_groups" {
   path = "github.com/aws/aws-sdk-go-v2/service/rds/types.DBSubnetGroup"
   ignoreError "IgnoreAccessDenied" {
     path = "github.com/cloudquery/cq-provider-aws/provider.IgnoreAccessDeniedServiceDisabled"
@@ -1360,6 +1379,45 @@ resource "aws" "rds" "subnet_groups" {
   }
 }
 
+resource "aws" "rds" "instances" {
+  path = "github.com/aws/aws-sdk-go-v2/service/rds/types.DBInstance"
+  ignoreError "IgnoreAccessDenied" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.IgnoreAccessDeniedServiceDisabled"
+  }
+  multiplex "AwsAccountRegion" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.AccountRegionMultiplex"
+  }
+  deleteFilter "AccountRegionFilter" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.DeleteAccountRegionFilter"
+  }
+  userDefinedColumn "account_id" {
+    type = "string"
+    resolver "resolveAWSAccount" {
+      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSAccount"
+    }
+  }
+  userDefinedColumn "region" {
+    type = "string"
+    resolver "resolveAWSRegion" {
+      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSRegion"
+    }
+  }
+
+  column "tag_list" {
+    // TypeJson
+    rename = "tags"
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "pending_modified_values_pending_cloudwatch_logs_exports_log_types_to_enable" {
+    rename = "pending_cloudwatch_logs_types_to_enable"
+  }
+
+  column "pending_modified_values_pending_cloudwatch_logs_exports_log_types_to_disable" {
+    rename = "pending_cloudwatch_logs_types_to_disable"
+  }
+}
 
 resource "aws" "sns" "topics" {
   path = "github.com/aws/aws-sdk-go-v2/service/sns/types.Topic"
@@ -1490,17 +1548,17 @@ resource "aws" "s3" "buckets" {
     }
   }
 
-//  relation "aws" "s3" "encryption_rules" {
-//    path = "github.com/aws/aws-sdk-go-v2/service/s3/types.ServerSideEncryptionRule"
-//
-//    column "apply_server_side_encryption_by_default_s_s_e_algorithm" {
-//      rename = "sse_algorithm"
-//
-//    }
-//    column "apply_server_side_encryption_by_default_k_m_s_master_key_id" {
-//      rename = "kms_master_key_id"
-//    }
-//  }
+  //  relation "aws" "s3" "encryption_rules" {
+  //    path = "github.com/aws/aws-sdk-go-v2/service/s3/types.ServerSideEncryptionRule"
+  //
+  //    column "apply_server_side_encryption_by_default_s_s_e_algorithm" {
+  //      rename = "sse_algorithm"
+  //
+  //    }
+  //    column "apply_server_side_encryption_by_default_k_m_s_master_key_id" {
+  //      rename = "kms_master_key_id"
+  //    }
+  //  }
 
 }
 
@@ -1595,8 +1653,7 @@ resource "aws" "sns" "subscriptions" {
   }
 }
 
-
-resource "aws" "redshift" "cluster" {
+resource "aws" "redshift" "clusters" {
   path = "github.com/aws/aws-sdk-go-v2/service/redshift/types.Cluster"
 
   ignoreError "IgnoreAccessDenied" {
@@ -1620,10 +1677,51 @@ resource "aws" "redshift" "cluster" {
       path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSRegion"
     }
   }
-  
+
   column "tags" {
     // TypeJson
     type = "json"
-    generate_resolver=true
+    generate_resolver = true
+  }
+}
+
+resource "aws" "redshift" "subnet_groups" {
+  path = "github.com/aws/aws-sdk-go-v2/service/redshift/types.ClusterSubnetGroup"
+
+  ignoreError "IgnoreAccessDenied" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.IgnoreAccessDeniedServiceDisabled"
+  }
+  multiplex "AwsAccountRegion" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.AccountRegionMultiplex"
+  }
+  deleteFilter "AccountRegionFilter" {
+    path = "github.com/cloudquery/cq-provider-aws/provider.DeleteAccountRegionFilter"
+  }
+  userDefinedColumn "account_id" {
+    type = "string"
+    resolver "resolveAWSAccount" {
+      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSAccount"
+    }
+  }
+  userDefinedColumn "region" {
+    type = "string"
+    resolver "resolveAWSRegion" {
+      path = "github.com/cloudquery/cq-provider-aws/provider.ResolveAWSRegion"
+    }
+  }
+
+  relation "aws" "redshift" "Subnet" {
+    path = "github.com/aws/aws-sdk-go-v2/service/redshift/types.Subnet"
+    column "subnet_availability_zone_supported_platforms" {
+      // TypeStringArray
+      type = "stringArray"
+      generate_resolver = true
+    }
+  }
+
+  column "tags" {
+    // TypeJson
+    type = "json"
+    generate_resolver = true
   }
 }
