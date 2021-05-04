@@ -1,5 +1,5 @@
 service = "azure"
-output_directory = "providers/cq-provider-azure/resources"
+output_directory = "../cq-provider-azure/resources"
 
 
 resource "azure" "compute" "disks" {

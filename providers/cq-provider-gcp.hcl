@@ -1,5 +1,5 @@
 service = "gcp"
-output_directory = "providers/cq-provider-gcp/resources"
+output_directory = "../cq-provider-gcp/resources"
 
 
 resource "gcp" "kms" "keyring" {
@@ -47,13 +47,6 @@ resource "gcp" "storage" "bucket" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
 
-  userDefinedColumn "location" {
-    type = "string"
-    resolver "resolveResourceLocation" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveLocation"
-    }
-  }
-
   userDefinedColumn "project_id" {
     type = "string"
     resolver "resolveResourceProject" {
@@ -87,17 +80,12 @@ resource "gcp" "storage" "bucket" {
 }
 
 resource "gcp" "sql" "instances" {
-  path = "google.golang.org/api/sql/v1beta4.DatabaseInstance"
+  path = "google.golang.org/api/sqladmin/v1beta4.DatabaseInstance"
 
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
-  userDefinedColumn "location" {
-    type = "string"
-    resolver "resolveResourceLocation" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveLocation"
-    }
-  }
+
   userDefinedColumn "project_id" {
     type = "string"
     resolver "resolveResourceProject" {
@@ -137,7 +125,7 @@ resource "gcp" "cloudfunctions" "function" {
 }
 
 resource "gcp" "crm" "projects" {
-  path = "google.golang.org/api/cloudresourcemanager/v1.Project"
+  path = "google.golang.org/api/cloudresourcemanager/v3.Project"
 
   column "id" {
     type = "string"

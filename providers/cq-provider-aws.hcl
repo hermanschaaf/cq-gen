@@ -1,5 +1,5 @@
 service = "aws"
-output_directory = "providers/cq-provider-aws/resources"
+output_directory = "../cq-provider-aws/resources"
 
 resource "aws" "autoscaling" "launch_configurations" {
   path = "github.com/aws/aws-sdk-go-v2/service/autoscaling/types.LaunchConfiguration"
