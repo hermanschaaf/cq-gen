@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	_ "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/cloudquery/cq-gen/codegen"
 	_ "github.com/cloudquery/cq-provider-aws/resources"
 )

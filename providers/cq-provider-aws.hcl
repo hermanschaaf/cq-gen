@@ -313,6 +313,7 @@ resource "aws" "directconnect" "gateways" {
 
 resource "aws" "directconnect" "virtual_interfaces" {
   path = "github.com/aws/aws-sdk-go-v2/service/directconnect/types.VirtualInterface"
+  description = "Information about a virtual interface. A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect location and the customer network"
   ignoreError "IgnoreAccessDenied" {
     path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
   }
@@ -335,6 +336,16 @@ resource "aws" "directconnect" "virtual_interfaces" {
     resolver "resolveAWSRegion" {
       path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
     }
+  }
+
+  column "tags" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "route_filter_prefixes" {
+    type = "StringArray"
+    generate_resolver = true
   }
 }
 
@@ -2052,6 +2063,18 @@ resource "aws" "rds" "instances" {
   column "pending_modified_values_pending_cloudwatch_logs_exports_log_types_to_disable" {
     rename = "pending_cloudwatch_logs_types_to_disable"
   }
+
+  column "pending_modified_values_processor_features" {
+    // TypeJson
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "processor_features" {
+    // TypeJson
+    type = "json"
+    generate_resolver = true
+  }
 }
 
 
@@ -3031,12 +3054,14 @@ resource "aws" "wafv2" "managed_rule_groups" {
   }
   userDefinedColumn "account_id" {
     type = "string"
+    description = "The AWS Account ID of the resource."
     resolver "resolveAWSAccount" {
       path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
     }
   }
   userDefinedColumn "region" {
     type = "string"
+    description = "The AWS Region of the resource."
     resolver "resolveAWSRegion" {
       path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
     }
@@ -3060,6 +3085,7 @@ resource "aws" "wafv2" "managed_rule_groups" {
   }
   userDefinedColumn "rules" {
     type = "json"
+  }
   userDefinedColumn "arn" {
     type = "string"
     generate_resolver = true
@@ -3675,6 +3701,5 @@ resource "aws" "apigateway" "vpc_links" {
   column "id" {
     rename = "resource_id"
   }
-
-
 }
+
