@@ -3,7 +3,6 @@ module github.com/cloudquery/cq-gen
 go 1.15
 
 require (
-	github.com/aws/aws-sdk-go-v2/service/iam v1.3.0
 	github.com/creasty/defaults v1.5.1
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect

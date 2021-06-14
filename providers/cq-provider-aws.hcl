@@ -2857,6 +2857,136 @@ resource "aws" "waf" "rules" {
   }
   userDefinedColumn "account_id" {
     type = "string"
+    resolver "resolveAWSAccount" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
+    }
+  }
+  userDefinedColumn "region" {
+    type = "string"
+    resolver "resolveAWSRegion" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
+    }
+  }
+  userDefinedColumn "arn" {
+    type = "string"
+    generate_resolver = true
+  }
+  userDefinedColumn "tags" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  relation "aws" "waf" "predicates" {
+    path = "github.com/aws/aws-sdk-go-v2/service/waf/types.Predicate"
+  }
+}
+
+resource "aws" "wafv2" "web_acls" {
+  path = "github.com/aws/aws-sdk-go-v2/service/wafv2/types.WebACL"
+  limit_depth = 1
+  ignoreError "IgnoreAccessDenied" {
+    path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
+  }
+  multiplex "AwsAccount" {
+    path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
+  }
+  deleteFilter "AccountRegionFilter" {
+    path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
+  }
+  userDefinedColumn "account_id" {
+    type = "string"
+    resolver "resolveAWSAccount" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
+    }
+  }
+  userDefinedColumn "region" {
+    type = "string"
+    resolver "resolveAWSRegion" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
+    }
+  }
+  userDefinedColumn "resources_for_web_acl" {
+    type = "stringArray"
+    generate_resolver = true
+  }
+  userDefinedColumn "tags" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "id" {
+    type = "string"
+    rename = "resource_id"
+  }
+  column "default_action" {
+    type = "json"
+    generate_resolver = true
+  }
+  column "pre_process_firewall_manager_rule_groups" {
+    skip = true
+  }
+  column "post_process_firewall_manager_rule_groups" {
+    skip = true
+  }
+  relation "aws" "wafv2" "rules" {
+    path = "github.com/aws/aws-sdk-go-v2/service/wafv2/types.Rule"
+    column "statement" {
+      type = "json"
+      generate_resolver = true
+    }
+    column "action" {
+      type = "json"
+      generate_resolver = true
+    }
+    column "override_action" {
+      type = "json"
+      generate_resolver = true
+    }
+    column "rule_labels" {
+      type = "stringArray"
+      generate_resolver = true
+      rename = "labels"
+    }
+  }
+  relation "aws" "wafv2" "post_process_firewall_manager_rule_groups" {
+    path = "github.com/aws/aws-sdk-go-v2/service/wafv2/types.FirewallManagerRuleGroup"
+    column "firewall_manager_statement" {
+      type = "json"
+      generate_resolver = true
+      rename = "statement"
+    }
+    column "override_action" {
+      type = "json"
+      generate_resolver = true
+    }
+  }
+  relation "aws" "wafv2" "pre_process_firewall_manager_rule_groups" {
+    path = "github.com/aws/aws-sdk-go-v2/service/wafv2/types.FirewallManagerRuleGroup"
+    column "firewall_manager_statement" {
+      type = "json"
+      generate_resolver = true
+      rename = "statement"
+    }
+    column "override_action" {
+      type = "json"
+      generate_resolver = true
+    }
+  }
+}
+
+resource "aws" "wafv2" "rule_groups" {
+  path = "github.com/aws/aws-sdk-go-v2/service/wafv2/types.RuleGroup"
+  ignoreError "IgnoreAccessDenied" {
+    path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
+  }
+  multiplex "AwsAccount" {
+    path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
+  }
+  deleteFilter "AccountRegionFilter" {
+    path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
+  }
+  userDefinedColumn "account_id" {
+    type = "string"
     description = "The AWS Account ID of the resource."
     resolver "resolveAWSAccount" {
       path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
@@ -2869,6 +2999,67 @@ resource "aws" "waf" "rules" {
       path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
     }
   }
+  userDefinedColumn "tags" {
+    type = "json"
+    generate_resolver = true
+  }
+  userDefinedColumn "policy" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "id" {
+    type = "string"
+    rename = "resource_id"
+  }
+  column "rules" {
+    type = "json"
+    generate_resolver = true
+  }
+}
+
+resource "aws" "wafv2" "managed_rule_groups" {
+  path = "github.com/aws/aws-sdk-go-v2/service/wafv2/types.ManagedRuleGroupSummary"
+  ignoreError "IgnoreAccessDenied" {
+    path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
+  }
+  multiplex "AwsAccount" {
+    path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
+  }
+  deleteFilter "AccountRegionFilter" {
+    path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
+  }
+  userDefinedColumn "account_id" {
+    type = "string"
+    resolver "resolveAWSAccount" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
+    }
+  }
+  userDefinedColumn "region" {
+    type = "string"
+    resolver "resolveAWSRegion" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
+    }
+  }
+
+  postResourceResolver "resolveDescribeManagedRuleGroup" {
+    path = "github.com/cloudquery/cq-provider-sdk/provider/schema.RowResolver"
+    generate = true
+  }
+  userDefinedColumn "available_labels" {
+    type = "stringArray"
+  }
+  userDefinedColumn "consumed_labels" {
+    type = "stringArray"
+  }
+  userDefinedColumn "capacity" {
+    type = "bigint"
+  }
+  userDefinedColumn "label_namespace" {
+    type = "string"
+  }
+  userDefinedColumn "rules" {
+    type = "json"
   userDefinedColumn "arn" {
     type = "string"
     generate_resolver = true
