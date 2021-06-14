@@ -2857,6 +2857,7 @@ resource "aws" "waf" "rules" {
 
 resource "aws" "lambda" "functions" {
   path = "github.com/aws/aws-sdk-go-v2/service/lambda.GetFunctionOutput"
+  description = "AWS Lambda is a serverless compute service that lets you run code without provisioning or managing servers, creating workload-aware cluster scaling logic, maintaining event integrations, or managing runtimes"
   ignoreError "IgnoreAccessDenied" {
     path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
   }
