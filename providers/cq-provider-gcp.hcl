@@ -3,7 +3,7 @@ output_directory = "../cq-provider-gcp/resources"
 description_parser = "gcp"
 
 
-resource "gcp" "kms" "keyring" {
+resource "gcp" "kms" "keyrings" {
   path = "google.golang.org/api/cloudkms/v1.KeyRing"
   description = "A KeyRing is a toplevel logical grouping of CryptoKeys."
   multiplex "ProjectMultiplex" {
@@ -27,6 +27,12 @@ resource "gcp" "kms" "keyring" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
+
+  column "create_time" {
+    type = "timestamp"
+    generate_resolver = true
+  }
+
   userDefinedColumn "location" {
     type = "string"
     description = "Location of the resource"
@@ -35,6 +41,44 @@ resource "gcp" "kms" "keyring" {
   relation "gcp" "kms" "cryptoKey" {
     path = "google.golang.org/api/cloudkms/v1.CryptoKey"
     description = " A CryptoKey represents a logical key that can be used for cryptographic operations."
+
+    postResourceResolver "PostResourceResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.AddGcpMetadata"
+    }
+    ignoreError "IgnoreError" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+    }
+
+    column "create_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+    column "next_rotation_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+    column "primary_create_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+    column "primary_destroy_event_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+    column "primary_destroy_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+    column "primary_generate_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+    column "primary_import_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+
+
     userDefinedColumn "project_id" {
       type = "string"
       description = "GCP Project Id of the resource"
@@ -42,17 +86,19 @@ resource "gcp" "kms" "keyring" {
         path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
       }
     }
-    postResourceResolver "AddGcpMetadata" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.AddGcpMetadata"
-    }
 
     userDefinedColumn "location" {
       type = "string"
     }
+
+    userDefinedColumn "policy" {
+      type = "json"
+      generate_resolver = true
+    }
   }
 }
 
-resource "gcp" "storage" "bucket" {
+resource "gcp" "storage" "buckets" {
   path = "google.golang.org/api/storage/v1.Bucket"
   description = "The Buckets resource represents a bucket in Cloud Storage"
 
@@ -88,6 +134,7 @@ resource "gcp" "storage" "bucket" {
   column "id" {
     type = "string"
     rename = "resource_id"
+    description = "Original Id of the resource"
     resolver "resolveResource" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResource"
     }
@@ -112,6 +159,16 @@ resource "gcp" "storage" "bucket" {
     path = "google.golang.org/api/storage/v1.BucketCors"
     description = "The bucket's Cross-Origin Resource Sharing (CORS) configuration."
   }
+
+  relation "gcp" "storage" "bucket_policy" {
+    path = "google.golang.org/api/storage/v1.Policy"
+    column "id" {
+      type = "string"
+      description = "Original Id of the resource"
+      rename = "resource_id"
+    }
+  }
+
   relation "gcp" "storage" "default_object_acls" {
     path = "google.golang.org/api/storage/v1.ObjectAccessControl"
     description = "Default access controls to apply to new objects when no ACL is provided."
@@ -142,8 +199,14 @@ resource "gcp" "sql" "instances" {
   column "replica_configuration" {
     skip_prefix = true
   }
+
+  column "replica_configuration_kind" {
+    //    rename = "replica_configuration_kind"
+    skip = true
+  }
+
   column "settings_database_flags" {
-    type="json"
+    type = "json"
     generate_resolver = true
   }
   column "current_disk_size" {
@@ -156,7 +219,11 @@ resource "gcp" "sql" "instances" {
     rename = "settings_backup_retention_settings_retention_unit"
   }
 
+  column "settings_backup_configuration_backup_retention_settings_retained_backups" {
+    rename = "settings_backup_retention_settings_retained_backups"
+  }
   column "id" {
+    description = "Original Id of the resource"
     type = "string"
     rename = "resource_id"
   }
@@ -220,7 +287,31 @@ resource "gcp" "iam" "service_accounts" {
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
+  relation "gcp" "iam" "service_account_keys" {
+    path = "google.golang.org/api/iam/v1.ServiceAccountKey"
 
+    column "private_key_data" {
+      skip = true
+    }
+
+    column "public_key_data" {
+      skip = true
+    }
+
+    column "private_key_type" {
+      skip = true
+    }
+
+    column "valid_after_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+
+    column "valid_before_time" {
+      type = "timestamp"
+      generate_resolver = true
+    }
+  }
 }
 
 
@@ -379,11 +470,11 @@ resource "gcp" "compute" "instances" {
     description = "Specifies the type of reservation from which this instance can consume resources: ANY_RESERVATION (default), SPECIFIC_RESERVATION, or NO_RESERVATION"
   }
   column "dxs" {
-    type="json"
+    type = "json"
     skip = true
   }
   column "dbs" {
-    type="json"
+    type = "json"
     skip = true
   }
   column "keks" {
@@ -396,7 +487,7 @@ resource "gcp" "compute" "instances" {
       skip_prefix = true
     }
     column "guest_os_features" {
-      type="stringarray"
+      type = "stringarray"
       generate_resolver = true
     }
     column "source_image" {
@@ -412,30 +503,29 @@ resource "gcp" "compute" "instances" {
       description = "Specifies the disk type to use to create the instance"
     }
     column "shielded_instance_initial_state_dbxs" {
-      type="json"
+      type = "json"
       skip = true
     }
     column "shielded_instance_initial_state_dbs" {
-      type="json"
+      type = "json"
       skip = true
     }
     column "shielded_instance_initial_state_keks" {
-      type="json"
+      type = "json"
       skip = true
     }
   }
 
 
   column "metadata_items" {
-    type="json"
+    type = "json"
     generate_resolver = true
   }
   column "guest_accelerators" {
-    type="json"
+    type = "json"
     generate_resolver = true
   }
 }
-
 
 
 resource "gcp" "compute" "images" {
@@ -476,7 +566,7 @@ resource "gcp" "compute" "images" {
   }
 
   column "guest_os_features" {
-    type="stringarray"
+    type = "stringarray"
     generate_resolver = true
   }
   column "shielded_instance_initial_state_dbxs" {
@@ -759,10 +849,19 @@ resource "gcp" "compute" "disks" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
-  column "id" {
+
+  userDefinedColumn "resource_id" {
+    description = "Original Id of the resource"
     type = "string"
-    rename = "resource_id"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
   }
+
+  column "id" {
+    skip = true
+  }
+
 
   column "name" {
     description = "Name of the resource Provided by the client when the resource is created"
@@ -780,7 +879,7 @@ resource "gcp" "compute" "disks" {
     skip = true
   }
   column "guest_os_features" {
-    type="stringarray"
+    type = "stringarray"
     generate_resolver = true
   }
 
@@ -913,3 +1012,747 @@ resource "gcp" "compute" "addresses" {
     rename = "resource_id"
   }
 }
+
+
+resource "gcp" "compute" "addresses" {
+  path = "google.golang.org/api/compute/v1.Address"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  column "id" {
+    type = "string"
+    rename = "resource_id"
+  }
+}
+
+
+resource "gcp" "bigquery" "datasets" {
+  path = "google.golang.org/api/bigquery/v2.Dataset"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  column "id" {
+    type = "string"
+    rename = "resource_id"
+  }
+
+  column "dataset_reference_dataset_id" {
+    rename = "reference_dataset_id"
+    skip = true
+  }
+
+  column "dataset_reference_project_id" {
+    rename = "reference_project_id"
+    skip = true
+  }
+
+  column "satisfies_p_z_s" {
+    rename = "satisfies_pzs"
+  }
+
+  column "access" {
+    skip = true
+  }
+}
+
+resource "gcp" "bigquery" "dataset_accesses" {
+  path = "google.golang.org/api/bigquery/v2.DatasetAccess"
+
+  column "dataset_dataset_dataset_id" {
+    rename = "dataset_id"
+    skip = true
+  }
+
+  userDefinedColumn "dataset_id" {
+    type = "uuid"
+    resolver "Resolver" {
+      path = "github.com/cloudquery/cq-provider-sdk/provider/schema.ParentIdResolver"
+    }
+  }
+
+  column "dataset_dataset_project_id" {
+    rename = "project_id"
+    skip = true
+  }
+
+  column "dataset_target_types" {
+    type = "stringarray"
+    rename = "target_types"
+    generate_resolver = true
+  }
+}
+
+resource "gcp" "bigquery" "dataset_tables" {
+  path = "google.golang.org/api/bigquery/v2.Table"
+  limit_depth = 1
+  column "schema" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  userDefinedColumn "dataset_id" {
+    type = "uuid"
+    resolver "Resolver" {
+      path = "github.com/cloudquery/cq-provider-sdk/provider/schema.ParentIdResolver"
+    }
+  }
+
+  column "external_data_configuration_schema" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "id" {
+    rename = "resource_id"
+  }
+
+  column "model_model_options_labels" {
+    rename = "model_options_labels"
+  }
+  column "model_model_options_loss_type" {
+    rename = "model_options_loss_type"
+  }
+  column "model_model_options_model_type" {
+    rename = "model_options_model_type"
+  }
+
+  column "snapshot_definition_base_table_reference_dataset_id" {
+    skip = true
+  }
+  column "snapshot_definition_base_table_reference_project_id" {
+    skip = true
+  }
+  column "snapshot_definition_base_table_reference_table_id" {
+    skip = true
+  }
+  column "snapshot_definition_snapshot_time" {
+    skip = true
+  }
+
+  column "table_reference_dataset_id" {
+    skip = true
+  }
+  column "table_reference_project_id" {
+    skip = true
+  }
+  column "table_reference_table_id" {
+    skip = true
+  }
+
+  //  column "external_data_configuration_autodetect" {
+  //    skip = true
+  //  }
+  //  column "external_data_configuration_compression" {
+  //    skip = true
+  //  }
+  //  column "external_data_configuration_connection_id" {
+  //    skip = true
+  //  }
+  //  column "external_data_configuration_ignore_unknown_values" {
+  //    skip = true
+  //  }
+  //  column "external_data_configuration_max_bad_records" {
+  //    skip = true
+  //  }
+  //  column "external_data_configuration_schema" {
+  //    skip = true
+  //  }
+  //  column "external_data_configuration_source_format" {
+  //    skip = true
+  //  }
+  //  column "external_data_configuration_source_uris" {
+  //    skip = true
+  //  }
+  column "external_data_configuration_bigtable_options_ignore_unspecified_column_families" {
+    skip = true
+  }
+  column "external_data_configuration_bigtable_options_read_rowkey_as_string" {
+    skip = true
+  }
+  column "external_data_configuration_csv_options_allow_jagged_rows" {
+    skip = true
+  }
+  column "external_data_configuration_csv_options_allow_quoted_newlines" {
+    skip = true
+  }
+  column "external_data_configuration_csv_options_encoding" {
+    skip = true
+  }
+  column "external_data_configuration_csv_options_field_delimiter" {
+    skip = true
+  }
+  column "external_data_configuration_csv_options_quote" {
+    skip = true
+  }
+  column "external_data_configuration_csv_options_skip_leading_rows" {
+    skip = true
+  }
+  column "external_data_configuration_google_sheets_options_range" {
+    skip = true
+  }
+  column "external_data_configuration_google_sheets_options_skip_leading_rows" {
+    skip = true
+  }
+  column "external_data_configuration_hive_partitioning_options_mode" {
+    skip = true
+  }
+  column "external_data_configuration_hive_partitioning_options_require_partition_filter" {
+    skip = true
+  }
+  column "external_data_configuration_hive_partitioning_options_source_uri_prefix" {
+    skip = true
+  }
+  column "external_data_configuration_parquet_options_enable_list_inference" {
+    skip = true
+  }
+  column "external_data_configuration_parquet_options_enable_list_inference" {
+    skip = true
+  }
+  column "external_data_configuration_parquet_options_enum_as_string" {
+    skip = true
+  }
+
+  column "external_data_configuration_bigtable_options_column_families" {
+    skip = true
+  }
+
+
+  relation "gcp" "bigquery" "dataset_model_training_runs" {
+    path = "google.golang.org/api/bigquery/v2.BqmlTrainingRun"
+    column "iteration_results" {
+      skip = true
+    }
+  }
+
+}
+
+
+resource "gcp" "compute" "projects" {
+  path = "google.golang.org/api/compute/v1.Project"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  userDefinedColumn "resource_id" {
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
+  }
+
+  column "id" {
+    skip = true
+  }
+
+  column "common_instance_metadata_items" {
+    type = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "gcp" "compute" "target_ssl_proxies" {
+  path = "google.golang.org/api/compute/v1.TargetSslProxy"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  userDefinedColumn "resource_id" {
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
+  }
+
+  column "id" {
+    skip = true
+  }
+}
+
+resource "gcp" "compute" "target_https_proxies" {
+  path = "google.golang.org/api/compute/v1.TargetHttpsProxy"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    description = "GCP Project Id of the resource"
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  userDefinedColumn "resource_id" {
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
+  }
+
+  column "id" {
+    skip = true
+  }
+}
+
+
+resource "gcp" "compute" "ssl_policies" {
+  path = "google.golang.org/api/compute/v1.SslPolicy"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  userDefinedColumn "resource_id" {
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
+  }
+
+  column "id" {
+    skip = true
+  }
+
+  relation "gcp" "compute" "ssl_policy_warnings" {
+    path = "google.golang.org/api/compute/v1.SslPolicyWarnings"
+
+    column "data" {
+      type = "json"
+      generate_resolver = true
+    }
+  }
+}
+
+resource "gcp" "dns" "managed_zones" {
+  path = "google.golang.org/api/dns/v1.ManagedZone"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  userDefinedColumn "resource_id" {
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
+  }
+
+  column "id" {
+    skip = true
+  }
+}
+
+
+resource "gcp" "dns" "policies" {
+  path = "google.golang.org/api/dns/v1.Policy"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  userDefinedColumn "resource_id" {
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
+  }
+
+  column "id" {
+    skip = true
+  }
+
+  column "alternative_name_server_config_target_name_servers" {
+    rename = "alternative_name_server_target_name_servers"
+  }
+}
+
+
+resource "gcp" "logging" "metrics" {
+  path = "google.golang.org/api/logging/v2.LogMetric"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  //todo float64 array
+  column "bucket_options_explicit_buckets_bounds" {
+    skip = true
+  }
+
+  column "bucket_options_exponential_buckets_growth_factor" {
+    rename = "exponential_buckets_options_growth_factor"
+  }
+
+  column "bucket_options_exponential_buckets_num_finite_buckets" {
+    rename = "exponential_buckets_options_num_finite_buckets"
+  }
+
+  column "bucket_options_exponential_buckets_scale" {
+    rename = "exponential_buckets_options_scale"
+  }
+
+  column "bucket_options_linear_buckets_num_finite_buckets" {
+    rename = "linear_buckets_options_num_finite_buckets"
+  }
+
+  column "bucket_options_linear_buckets_offset" {
+    rename = "linear_buckets_options_offset"
+  }
+
+  column "bucket_options_linear_buckets_width" {
+    rename = "linear_buckets_options_width"
+  }
+
+  column "id" {
+    rename = "resource_id"
+    description = "Original Id of the resource"
+  }
+}
+
+
+resource "gcp" "monitoring" "alert_policies" {
+  path = "google.golang.org/api/monitoring/v3.AlertPolicy"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  column "id" {
+    rename = "resource_id"
+    description = "Original Id of the resource"
+  }
+
+  column "mutation_record_mutate_time" {
+    rename = "mutate_time"
+  }
+
+  column "mutation_record_mutated_by" {
+    rename = "mutated_by"
+  }
+
+  //todo array of []byte, maybe tore it as array of strings(base64)
+  column "validity_details" {
+    skip = true
+  }
+
+  relation "gcp" "monitoring" "alert_policy_conditions" {
+    path = "google.golang.org/api/monitoring/v3.Condition"
+
+    column "condition_absent_duration" {
+      rename = "absent_duration"
+    }
+
+    column "condition_absent_filter" {
+      rename = "absent_filter"
+    }
+    column "condition_absent_trigger_count" {
+      rename = "absent_trigger_count"
+    }
+
+    column "condition_absent_trigger_percent" {
+      rename = "absent_trigger_percent"
+    }
+
+    column "condition_monitoring_query_language_duration" {
+      rename = "monitoring_query_language_duration"
+    }
+
+    column "condition_monitoring_query_language_query" {
+      rename = "monitoring_query_language_query"
+    }
+
+    column "condition_monitoring_query_language_trigger_count" {
+      rename = "monitoring_query_language_trigger_count"
+    }
+
+    column "condition_monitoring_query_language_trigger_percent" {
+      rename = "monitoring_query_language_trigger_percent"
+    }
+
+    column "condition_threshold_comparison" {
+      rename = "threshold_comparison"
+    }
+
+    column "condition_threshold_denominator_filter" {
+      rename = "threshold_denominator_filter"
+    }
+
+    column "condition_threshold_duration" {
+      rename = "threshold_duration"
+    }
+
+    column "condition_threshold_filter" {
+      rename = "threshold_filter"
+    }
+
+    column "condition_threshold_denominator_filter" {
+      rename = "threshold_denominator_filter"
+    }
+
+
+    column "condition_threshold_threshold_value" {
+      rename = "threshold_value"
+    }
+
+    column "condition_threshold_trigger_count" {
+      rename = "threshold_trigger_count"
+    }
+
+    column "condition_threshold_trigger_percent" {
+      rename = "threshold_trigger_percent"
+    }
+
+    column "condition_threshold_aggregations" {
+      rename = "threshold_aggregations"
+    }
+
+    column "condition_absent_aggregations" {
+      rename = "absent_aggregations"
+    }
+
+    column "condition_threshold_denominator_aggregations" {
+      rename = "denominator_aggregations"
+    }
+  }
+}
+
+
+resource "gcp" "logging" "sinks" {
+  path = "google.golang.org/api/logging/v2.LogSink"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  column "id" {
+    rename = "resource_id"
+    description = "Original Id of the resource"
+    type = "string"
+    resolver "resolveResource" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResource"
+    }
+  }
+}
+
+
+resource "gcp" "resource_manager" "projects" {
+  path = "google.golang.org/api/cloudresourcemanager/v3.Project"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+  column "create_time" {
+    type = "timestamp"
+  }
+
+  column "delete_time" {
+    type = "timestamp"
+  }
+
+  column "update_time" {
+    type = "timestamp"
+  }
+
+  userDefinedColumn "policy" {
+    type = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "gcp" "resource_manager" "folders" {
+  path = "google.golang.org/api/cloudresourcemanager/v3.Folder"
+
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.DeleteProjectFilter"
+  }
+  ignoreError "IgnoreError" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
+  }
+
+  userDefinedColumn "project_id" {
+    type = "string"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+
+  column "create_time" {
+    type = "timestamp"
+  }
+
+  column "delete_time" {
+    type = "timestamp"
+  }
+
+  column "update_time" {
+    type = "timestamp"
+  }
+
+  userDefinedColumn "policy" {
+    type = "json"
+    generate_resolver = true
+  }
+}
+
+
+
+
+

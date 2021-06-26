@@ -18,6 +18,7 @@ type Rewriter struct {
 	files  map[string]string
 	copied map[ast.Decl]bool
 }
+
 func NewFromImportPath(importPath string) (*Rewriter, error) {
 	pkgs, err := packages.Load(&packages.Config{
 		Mode: packages.NeedSyntax | packages.NeedTypes,

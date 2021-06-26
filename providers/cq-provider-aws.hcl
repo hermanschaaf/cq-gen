@@ -1496,11 +1496,13 @@ resource "aws" "iam" "groups" {
     }
   }
 
-  userDefinedColumn "policies" {
+  userDefinedColumn "attached_policies" {
     type = "json"
     generate_resolver = true
     description = "List of policies attached to group."
   }
+
+//relation "inline_policies"
 }
 
 
@@ -2761,7 +2763,7 @@ resource "aws" "config" "conformance_pack" {
   }
 }
 
-resource "aws" "waf" "web_acls" {
+resource "aws" "waf" "webacls" {
   path = "github.com/aws/aws-sdk-go-v2/service/waf/types.WebACL"
   ignoreError "IgnoreAccessDenied" {
     path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
