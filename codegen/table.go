@@ -291,7 +291,7 @@ func (b builder) buildTableColumn(table *TableDefinition, fieldPath, columnPath 
 
 	if cfg.Rename != "" {
 		colDef.Name = cfg.Rename
-		colDef = b.addPathResolver(fieldName, fieldPath, colDef)
+		colDef = b.addPathResolver(fieldName, fieldPath, colDef, nil)
 	}
 
 	if cfg.Description != "" {
@@ -309,7 +309,19 @@ func (b builder) buildTableColumn(table *TableDefinition, fieldPath, columnPath 
 			colDef.Description = desc
 		}
 	}
-
+	if cfg.Resolver != nil {
+		ro, err := b.finder.FindObjectFromName(cfg.Resolver.Path)
+		if err != nil {
+			return err
+		}
+		if cfg.Resolver.Path != "" && cfg.Resolver.PathResolver {
+			colDef = b.addPathResolver(fieldName, fieldPath, colDef, ro)
+		} else {
+			colDef.Resolver = &FunctionDefinition{
+				Type:      ro,
+			}
+		}
+	}
 	if cfg.GenerateResolver {
 		if colDef.Resolver != nil {
 			b.logger.Warn("overriding already defined column resolver", "column", fieldName, "resolver", colDef.Resolver.Name)
@@ -325,6 +337,7 @@ func (b builder) buildTableColumn(table *TableDefinition, fieldPath, columnPath 
 		}
 		colDef.Resolver = columnResolver
 		// Set signature of function as the generated resolver name
+		colDef.Resolver.Signature = colDef.Resolver.Name
 		colDef.Resolver.Signature = colDef.Resolver.Name
 	}
 
@@ -377,29 +390,35 @@ func (b builder) buildTableColumn(table *TableDefinition, fieldPath, columnPath 
 		table.Columns = append(table.Columns, colDef)
 	default:
 		colDef.Type = valueType
-		table.Columns = append(table.Columns, b.addPathResolver(fieldName, fieldPath, colDef))
+		table.Columns = append(table.Columns, b.addPathResolver(fieldName, fieldPath, colDef, nil))
 	}
 	return nil
 }
 
-func (b builder) addPathResolver(fieldName, fieldPath string, definition ColumnDefinition) ColumnDefinition {
+func (b builder) addPathResolver(fieldName, fieldPath string, definition ColumnDefinition, funcObj types.Object) ColumnDefinition {
 	if definition.Resolver != nil {
 		return definition
+	}
+	signatureName := "schema.PathResolver"
+	if funcObj != nil {
+		signatureName = fmt.Sprintf("%s.%s", funcObj.Pkg().Name(), funcObj.Name())
 	}
 	if fieldPath != "" {
 		b.logger.Debug("Adding embedded resolver path", "column", strcase.ToCamel(definition.Name), "field", fieldName)
 		definition.Resolver = &FunctionDefinition{
-			Signature: fmt.Sprintf("schema.PathResolver(\"%s.%s\")", fieldPath, fieldName),
+			Type:      funcObj,
+			Signature: fmt.Sprintf("%s(\"%s.%s\")", signatureName, fieldPath, fieldName),
 		}
 		return definition
 	}
-	// use strcase here since sdk uses it
-	if strcase.ToCamel(definition.Name) == fieldName {
+	// use strcase here since sdk uses it and we didn't get a user defined path resolver
+	if strcase.ToCamel(definition.Name) == fieldName && funcObj == nil {
 		return definition
 	}
 	b.logger.Debug("Adding path resolver column name. camelCase is not same as original field name", "column", strcase.ToCamel(definition.Name), "field", fieldName)
 	definition.Resolver = &FunctionDefinition{
-		Signature: fmt.Sprintf("schema.PathResolver(\"%s\")", fieldName),
+		Type:      funcObj,
+		Signature: fmt.Sprintf("%s(\"%s\")", signatureName, fieldName),
 	}
 	return definition
 }

@@ -70,7 +70,8 @@ type FunctionConfig struct {
 	Path string `hcl:"path"`
 	// Generate tells cq-gen to create the function code in template, usually set automatically.
 	// Setting to true will force function generation in template.
-	Generate bool `hcl:"generate,optional"`
+	Generate     bool `hcl:"generate,optional"`
+	PathResolver bool `hcl:"path_resolver,optional"`
 }
 
 func (r ResourceConfig) GetRelationConfig(name string) *ResourceConfig {

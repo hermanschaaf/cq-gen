@@ -28,9 +28,21 @@ resource "gcp" "kms" "keyrings" {
     }
   }
 
+  column "labels" {
+    description = "Labels for this resource"
+  }
+  column "primary_algorithm" {
+    description = "The CryptoKeyVersionAlgorithm that this CryptoKeyVersion supports"
+  }
+  column "primary_attestation_format" {
+    description = "The format of the attestation data"
+  }
   column "create_time" {
     type = "timestamp"
-    generate_resolver = true
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
   }
 
   userDefinedColumn "location" {
@@ -40,7 +52,7 @@ resource "gcp" "kms" "keyrings" {
 
   relation "gcp" "kms" "cryptoKey" {
     path = "google.golang.org/api/cloudkms/v1.CryptoKey"
-    description = " A CryptoKey represents a logical key that can be used for cryptographic operations."
+    description = "A CryptoKey represents a logical key that can be used for cryptographic operations."
 
     postResourceResolver "PostResourceResolver" {
       path = "github.com/cloudquery/cq-provider-gcp/client.AddGcpMetadata"
@@ -51,33 +63,68 @@ resource "gcp" "kms" "keyrings" {
 
     column "create_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
     column "next_rotation_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
     column "primary_create_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
     column "primary_destroy_event_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
     column "primary_destroy_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
     column "primary_generate_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
     column "primary_import_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
-
+    column "primary_protection_level" {
+      description = "The ProtectionLevel describing how crypto operations are performed with this CryptoKeyVersion"
+    }
+    column "primary_state" {
+      description = "The current state of the CryptoKeyVersion"
+    }
+    column "purpose" {
+      description = "Immutable The immutable purpose of this CryptoKey"
+    }
+    column "version_template_algorithm" {
+      description = "Algorithm to use when creating a CryptoKeyVersion based on this template"
+    }
+    column "version_template_protection_level" {
+      description = "ProtectionLevel to use when creating a CryptoKeyVersion based on this template Immutable Defaults to SOFTWARE"
+    }
 
     userDefinedColumn "project_id" {
       type = "string"
@@ -89,10 +136,12 @@ resource "gcp" "kms" "keyrings" {
 
     userDefinedColumn "location" {
       type = "string"
+      description = "Location of the resource"
     }
 
     userDefinedColumn "policy" {
       type = "json"
+      description = "Access control policy for a resource"
       generate_resolver = true
     }
   }
@@ -135,8 +184,8 @@ resource "gcp" "storage" "buckets" {
     type = "string"
     rename = "resource_id"
     description = "Original Id of the resource"
-    resolver "resolveResource" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResource"
+    resolver "ResolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
   }
 
@@ -146,8 +195,8 @@ resource "gcp" "storage" "buckets" {
     column "id" {
       type = "string"
       rename = "resource_id"
-      resolver "resolveResource" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResource"
+      resolver "ResolveResourceId" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
       }
     }
   }
@@ -175,8 +224,8 @@ resource "gcp" "storage" "buckets" {
     column "id" {
       type = "string"
       rename = "resource_id"
-      resolver "resolveResource" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResource"
+      resolver "ResolveResourceId" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
       }
     }
   }
@@ -287,6 +336,15 @@ resource "gcp" "iam" "service_accounts" {
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
+  // deprecated
+  column "etag" {
+    skip = true
+  }
+
+  column "name" {
+    description = "The resource name of the service account In one of the following formats: * `projects/{PROJECT_ID}/serviceAccounts/{EMAIL_ADDRESS}` OR `projects/{PROJECT_ID}/serviceAccounts/{UNIQUE_ID}` OR `projects/-/serviceAccounts/{UNIQUE_ID}"
+  }
+
   relation "gcp" "iam" "service_account_keys" {
     path = "google.golang.org/api/iam/v1.ServiceAccountKey"
 
@@ -304,12 +362,18 @@ resource "gcp" "iam" "service_accounts" {
 
     column "valid_after_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
 
     column "valid_before_time" {
       type = "timestamp"
-      generate_resolver = true
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
     }
   }
 }
@@ -328,6 +392,10 @@ resource "gcp" "iam" "roles" {
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
+  }
+
+  column "name" {
+    description = "The name of the role"
   }
 }
 
@@ -444,7 +512,7 @@ resource "gcp" "compute" "instances" {
     rename = "resource_id"
   }
   column "name" {
-    description = "Name of the resource Provided by the client when the resource is created"
+    description = "Name of the resource provided by the client when the resource is created"
   }
   column "labels" {
     description = "Labels for this resource"
@@ -502,6 +570,18 @@ resource "gcp" "compute" "instances" {
     column "disk_type" {
       description = "Specifies the disk type to use to create the instance"
     }
+    column "source_storage_object" {
+      description = "The full Google Cloud Storage URI where the disk image is stored"
+    }
+
+    column "creation_timestamp" {
+      type = "timestamp"
+      resolver "ISODateResolver" {
+        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path_resolver = true
+      }
+    }
+
     column "shielded_instance_initial_state_dbxs" {
       type = "json"
       skip = true
@@ -628,7 +708,7 @@ resource "gcp" "compute" "networks" {
     rename = "resource_id"
   }
   column "name" {
-    description = "Name of the resource Provided by the client when the resource is created"
+    description = "Name of the resource provided by the client when the resource is created"
   }
 }
 
@@ -652,7 +732,7 @@ resource "gcp" "compute" "ssl_certificates" {
     rename = "resource_id"
   }
   column "name" {
-    description = "Name of the resource Provided by the client when the resource is created"
+    description = "Name of the resource provided by the client when the resource is created"
   }
 }
 
@@ -849,17 +929,11 @@ resource "gcp" "compute" "disks" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
-
-  userDefinedColumn "resource_id" {
-    description = "Original Id of the resource"
-    type = "string"
+  column "id" {
+    rename = "disk_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
-  }
-
-  column "id" {
-    skip = true
   }
 
 
@@ -1008,42 +1082,25 @@ resource "gcp" "compute" "addresses" {
     description = "This signifies the networking tier used for configuring this address"
   }
   column "id" {
+    rename = "address_id"
     type = "string"
-    rename = "resource_id"
-  }
-}
-
-
-resource "gcp" "compute" "addresses" {
-  path = "google.golang.org/api/compute/v1.Address"
-
-  multiplex "ProjectMultiplex" {
-    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
-  }
-
-  userDefinedColumn "project_id" {
-    type = "string"
-    resolver "resolveResourceProject" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
-  }
-
-  column "id" {
-    type = "string"
-    rename = "resource_id"
   }
 }
 
 
 resource "gcp" "bigquery" "datasets" {
   path = "google.golang.org/api/bigquery/v2.Dataset"
-
+  description = "dataset resources in the project"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
 
   userDefinedColumn "project_id" {
     type = "string"
+    description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
@@ -1051,7 +1108,7 @@ resource "gcp" "bigquery" "datasets" {
 
   column "id" {
     type = "string"
-    rename = "resource_id"
+    rename = "dataset_id"
   }
 
   column "dataset_reference_dataset_id" {
@@ -1096,12 +1153,14 @@ resource "gcp" "bigquery" "dataset_accesses" {
   column "dataset_target_types" {
     type = "stringarray"
     rename = "target_types"
+    description = "Which resources in the dataset this entry applies to."
     generate_resolver = true
   }
 }
 
 resource "gcp" "bigquery" "dataset_tables" {
   path = "google.golang.org/api/bigquery/v2.Table"
+  description = "Model options used for the first training run These options are immutable for subsequent training runs Default values are used for any options not specified in the input query"
   limit_depth = 1
   column "schema" {
     type = "json"
@@ -1110,6 +1169,7 @@ resource "gcp" "bigquery" "dataset_tables" {
 
   userDefinedColumn "dataset_id" {
     type = "uuid"
+    description = ""
     resolver "Resolver" {
       path = "github.com/cloudquery/cq-provider-sdk/provider/schema.ParentIdResolver"
     }
@@ -1121,7 +1181,7 @@ resource "gcp" "bigquery" "dataset_tables" {
   }
 
   column "id" {
-    rename = "resource_id"
+    rename = "table_id"
   }
 
   column "model_model_options_labels" {
@@ -1156,31 +1216,9 @@ resource "gcp" "bigquery" "dataset_tables" {
   column "table_reference_table_id" {
     skip = true
   }
-
-  //  column "external_data_configuration_autodetect" {
-  //    skip = true
-  //  }
-  //  column "external_data_configuration_compression" {
-  //    skip = true
-  //  }
-  //  column "external_data_configuration_connection_id" {
-  //    skip = true
-  //  }
-  //  column "external_data_configuration_ignore_unknown_values" {
-  //    skip = true
-  //  }
-  //  column "external_data_configuration_max_bad_records" {
-  //    skip = true
-  //  }
-  //  column "external_data_configuration_schema" {
-  //    skip = true
-  //  }
-  //  column "external_data_configuration_source_format" {
-  //    skip = true
-  //  }
-  //  column "external_data_configuration_source_uris" {
-  //    skip = true
-  //  }
+  column "external_data_configuration_ignore_unknown_values" {
+    description = "Indicates if BigQuery should allow extra values that are not represented in the table schema"
+  }
   column "external_data_configuration_bigtable_options_ignore_unspecified_column_families" {
     skip = true
   }
@@ -1242,11 +1280,22 @@ resource "gcp" "bigquery" "dataset_tables" {
     }
   }
 
+  relation "gcp" "bigquery" "user_defined_functions" {
+    path = "google.golang.org/api/bigquery/v2.UserDefinedFunctionResource"
+    description = "This is used for defining User Defined Function (UDF) resources only when using legacy SQL"
+  }
+  relation "gcp" "bigquery" "training_runs" {
+    path = "google.golang.org/api/bigquery/v2.BqmlTrainingRun"
+    description = "Training options used by this training run These options are mutable for subsequent training runs"
+  }
+
+
 }
 
 
 resource "gcp" "compute" "projects" {
   path = "google.golang.org/api/compute/v1.Project"
+  description = "Represents a Project resource which is used to organize resources in a Google Cloud Platform environment"
 
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
@@ -1258,24 +1307,44 @@ resource "gcp" "compute" "projects" {
     path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
   }
 
-
   userDefinedColumn "project_id" {
     type = "string"
+    description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
 
-  userDefinedColumn "resource_id" {
-    description = "Original Id of the resource"
-    type = "string"
-    resolver "resolveResourceId" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+  column "creation_timestamp" {
+    type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
     }
   }
 
+  column "common_instance_metadata_fingerprint" {
+    description = "Specifies a fingerprint for this resource"
+  }
+
+  column "name" {
+    description = "The project ID For example: my-example-project"
+  }
+
+  column "usage_export_location_bucket_name" {
+    description = "The name of an existing bucket in Cloud Storage where the usage report object is stored"
+  }
+
+  column "usage_export_location_report_name_prefix" {
+    description = "An optional prefix for the name of the usage report object stored in bucketName"
+  }
+
   column "id" {
-    skip = true
+    type = "string"
+    rename = "compute_project_id"
+    resolver "resolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
+    }
   }
 
   column "common_instance_metadata_items" {
@@ -1287,7 +1356,7 @@ resource "gcp" "compute" "projects" {
 
 resource "gcp" "compute" "target_ssl_proxies" {
   path = "google.golang.org/api/compute/v1.TargetSslProxy"
-
+  description = "Represents a Target SSL Proxy resource"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
@@ -1300,28 +1369,37 @@ resource "gcp" "compute" "target_ssl_proxies" {
 
 
   userDefinedColumn "project_id" {
-    description = "Original Id of the resource"
+    description = "GCP Project Id of the resource"
     type = "string"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
-
-  userDefinedColumn "resource_id" {
-    description = "Original Id of the resource"
+  column "creation_timestamp" {
+    type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
+  }
+  column "name" {
+    description = "Name of the resource"
+  }
+  column "description" {
+    description = "An optional description of this resource"
+  }
+  column "id" {
     type = "string"
+    rename = "ssl_proxy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
-  }
-
-  column "id" {
-    skip = true
   }
 }
 
 resource "gcp" "compute" "target_https_proxies" {
   path = "google.golang.org/api/compute/v1.TargetHttpsProxy"
+  description = "Represents a Target HTTPS Proxy resource"
 
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
@@ -1341,24 +1419,37 @@ resource "gcp" "compute" "target_https_proxies" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
+  column "description" {
+    description = "An optional description of this resource"
+  }
+  column "fingerprint" {
+    description = "Fingerprint of this resource"
+  }
+  column "creation_timestamp" {
+    type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
+  }
 
-  userDefinedColumn "resource_id" {
-    description = "Original Id of the resource"
+  column "name" {
+    description = "Name of the resource"
+  }
+  column "id" {
     type = "string"
+    rename = "https_proxy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
   }
 
-  column "id" {
-    skip = true
-  }
 }
 
 
 resource "gcp" "compute" "ssl_policies" {
   path = "google.golang.org/api/compute/v1.SslPolicy"
-
+  description = "Represents an SSL Policy resource"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
@@ -1369,24 +1460,40 @@ resource "gcp" "compute" "ssl_policies" {
     path = "github.com/cloudquery/cq-provider-gcp/client.IgnoreErrorHandler"
   }
 
-
   userDefinedColumn "project_id" {
+    description = "GCP Project Id of the resource"
     type = "string"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
+  column "kind" {
+    description = "Type of the resource Always compute#sslPolicy for SSL policies"
+  }
+  column "description" {
+    description = "An optional description of this resource"
+  }
+  column "fingerprint" {
+    description = "Fingerprint of this resource"
+  }
+  column "creation_timestamp" {
+    type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
+    generate_resolver = true
+  }
 
-  userDefinedColumn "resource_id" {
-    description = "Original Id of the resource"
+  column "name" {
+    description = "Name of the resource"
+  }
+  column "id" {
     type = "string"
+    rename = "ssl_policy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
-  }
-
-  column "id" {
-    skip = true
   }
 
   relation "gcp" "compute" "ssl_policy_warnings" {
@@ -1415,21 +1522,30 @@ resource "gcp" "dns" "managed_zones" {
 
   userDefinedColumn "project_id" {
     type = "string"
+    description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
+  column "name" {
+    description = "User assigned name for this resource"
+  }
+  column "labels" {
+    description = "User assigned labels for this resource"
+  }
+  column "name_server_set" {
+    description = "specifies the NameServerSet for this ManagedZone"
+  }
 
-  userDefinedColumn "resource_id" {
-    description = "Original Id of the resource"
+  column "kind" {
+    description = "The resource type"
+  }
+  column "id" {
     type = "string"
+    rename = "managed_zone_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
-  }
-
-  column "id" {
-    skip = true
   }
 }
 
@@ -1450,25 +1566,42 @@ resource "gcp" "dns" "policies" {
 
   userDefinedColumn "project_id" {
     type = "string"
+    description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
 
-  userDefinedColumn "resource_id" {
-    description = "Original Id of the resource"
+  column "kind" {
+    description = "The resource type"
+  }
+
+  column "id" {
     type = "string"
+    rename = "policy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
   }
 
-  column "id" {
-    skip = true
-  }
-
   column "alternative_name_server_config_target_name_servers" {
     rename = "alternative_name_server_target_name_servers"
+  }
+  column "alternative_name_server_config_kind" {
+    description = "alternative name server type"
+  }
+
+  relation "gcp" "dns" "alternative_name_servers" {
+    path = "google.golang.org/api/dns/v1.PolicyAlternativeNameServerConfigTargetNameServer"
+    column "kind" {
+      description = "The resource type"
+    }
+  }
+  relation "gcp" "dns" "policy_networks" {
+    path = "google.golang.org/api/dns/v1.PolicyNetwork"
+    column "kind" {
+      description = "The resource type"
+    }
   }
 }
 
@@ -1488,6 +1621,7 @@ resource "gcp" "logging" "metrics" {
 
   userDefinedColumn "project_id" {
     type = "string"
+    description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
@@ -1522,9 +1656,16 @@ resource "gcp" "logging" "metrics" {
     rename = "linear_buckets_options_width"
   }
 
+  column "metric_descriptor_launch_stage" {
+    description = "The launch stage of the metric definition"
+  }
+  // deprecated
+  column "metric_descriptor_metadata_launch_stage" {
+    skip = true
+  }
   column "id" {
-    rename = "resource_id"
-    description = "Original Id of the resource"
+    rename = "metric_id"
+    description = "Id of the logging metric"
   }
 }
 
@@ -1545,20 +1686,27 @@ resource "gcp" "monitoring" "alert_policies" {
 
   userDefinedColumn "project_id" {
     type = "string"
+    description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
 
+  column "name" {
+    description = "The resource name for this policy"
+  }
   column "id" {
-    rename = "resource_id"
-    description = "Original Id of the resource"
+    rename = "alert_policy_id"
   }
 
   column "mutation_record_mutate_time" {
     rename = "mutate_time"
   }
 
+  column "user_labels" {
+    rename = "labels"
+    description = "Labels for this resource"
+  }
   column "mutation_record_mutated_by" {
     rename = "mutated_by"
   }
@@ -1666,17 +1814,18 @@ resource "gcp" "logging" "sinks" {
 
   userDefinedColumn "project_id" {
     type = "string"
+    description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
   }
 
   column "id" {
-    rename = "resource_id"
-    description = "Original Id of the resource"
+    rename = "sink_id"
+    description = "Id of the logging sink"
     type = "string"
-    resolver "resolveResource" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResource"
+    resolver "ResolveResourceId" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
   }
 }
@@ -1697,18 +1846,32 @@ resource "gcp" "resource_manager" "projects" {
 
   column "create_time" {
     type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
   }
 
   column "delete_time" {
     type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
   }
 
   column "update_time" {
     type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+    }
   }
-
+  column "labels" {
+    description = "The labels associated with this project"
+  }
   userDefinedColumn "policy" {
     type = "json"
+    description = "Access control policy for a resource"
     generate_resolver = true
   }
 }
@@ -1736,18 +1899,31 @@ resource "gcp" "resource_manager" "folders" {
 
   column "create_time" {
     type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
   }
 
   column "delete_time" {
     type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
   }
 
   column "update_time" {
     type = "timestamp"
+    resolver "ISODateResolver" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path_resolver = true
+    }
   }
 
   userDefinedColumn "policy" {
     type = "json"
+    description = "Access control policy for a resource"
     generate_resolver = true
   }
 }
