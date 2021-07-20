@@ -958,3 +958,24 @@ resource "azure" "network" "public_ip_addresses" {
     generate_resolver = true
   }
 }
+
+
+resource "azure" "monitor" "diagnostic_settings" {
+  path = "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-11-01-preview/insights.DiagnosticSettingsResource"
+
+  userDefinedColumn "subscription_id" {
+    type = "string"
+    description = "Azure subscription id"
+    resolver "resolveAzureSubscription" {
+      path = "github.com/cloudquery/cq-provider-azure/client.ResolveAzureSubscription"
+    }
+  }
+
+  multiplex "AzureSubscription" {
+    path = "github.com/cloudquery/cq-provider-azure/client.SubscriptionMultiplex"
+  }
+
+  column "diagnostic_settings" {
+    skip_prefix = true
+  }
+}
