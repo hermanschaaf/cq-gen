@@ -649,3 +649,134 @@ resource "azure" "monitor" "diagnostic_settings" {
     skip_prefix = true
   }
 }
+
+
+resource "azure" "compute" "virtual_machines" {
+  path = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-03-01/compute.VirtualMachine"
+
+  deleteFilter "AzureSubscription" {
+    path = "github.com/cloudquery/cq-provider-azure/client.DeleteSubscriptionFilter"
+  }
+
+  options {
+    primary_keys = [
+      "subscription_id",
+      "id"]
+  }
+
+  userDefinedColumn "subscription_id" {
+    type = "string"
+    description = "Azure subscription id"
+    resolver "resolveAzureSubscription" {
+      path = "github.com/cloudquery/cq-provider-azure/client.ResolveAzureSubscription"
+    }
+  }
+
+  multiplex "AzureSubscription" {
+    path = "github.com/cloudquery/cq-provider-azure/client.SubscriptionMultiplex"
+  }
+  limit_depth = 0
+
+  column "virtual_machine_properties" {
+    skip_prefix = true
+  }
+
+  column "additional_capabilities_ultra_s_s_d_enabled" {
+    rename = "additional_capabilities_ultra_ssd_enabled"
+  }
+
+  column "virtual_machine_properties_instance_view_patch_status" {
+    type = "json"
+  }
+
+  column "platform_fault_domain" {
+    description = "Specifies the scale set logical fault domain into which the Virtual Machine will be created."
+  }
+
+  column "storage_profile" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "os_profile" {
+    skip_prefix = true
+    generate_resolver = true
+  }
+
+  column "instance_view" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "maintenance_redeploy_status" {
+    skip_prefix = true
+  }
+
+  column "patch_status" {
+    skip_prefix = true
+  }
+
+  column "windows_configuration_additional_unattend_content" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "network_profile_network_interfaces" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "windows_configuration_win_r_m_listeners" {
+    rename = "win_config_rm_listeners"
+  }
+
+
+  column "linux_configuration_ssh_public_keys" {
+    type = "json"
+    generate_resolver = true
+  }
+
+
+  column "last_patch_installation_summary_error_details" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "available_patch_summary_error_details" {
+    type = "json"
+    generate_resolver = true
+  }
+
+
+  relation "azure" "compute" "virtual_machine_network_interfaces" {
+    path = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-03-01/compute.NetworkInterfaceReference"
+  }
+
+
+  relation "azure" "compute" "virtual_machine_resources" {
+    path = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-03-01/compute.VirtualMachineExtension"
+
+    column "virtual_machine_extension_properties" {
+      type = "json"
+      generate_resolver = true
+    }
+    column "settings" {
+      type = "json"
+      generate_resolver = true
+    }
+
+    column "instance_view_substatuses" {
+      rename = "substatuses"
+    }
+
+    column "instance_view_statuses" {
+      rename = "statuses"
+    }
+
+    column "protected_settings" {
+      type = "json"
+      generate_resolver = true
+    }
+
+  }
+}
