@@ -908,3 +908,53 @@ resource "azure" "network" "security_groups" {
     }
   }
 }
+
+
+resource "azure" "network" "public_ip_addresses" {
+  path = "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network.PublicIPAddress"
+  limit_depth = 1
+
+  options {
+    primary_keys = [
+      "subscription_id",
+      "id"]
+  }
+
+  userDefinedColumn "subscription_id" {
+    type = "string"
+    description = "Azure subscription id"
+    resolver "resolveAzureSubscription" {
+      path = "github.com/cloudquery/cq-provider-azure/client.ResolveAzureSubscription"
+    }
+  }
+
+  multiplex "AzureSubscription" {
+    path = "github.com/cloudquery/cq-provider-azure/client.SubscriptionMultiplex"
+  }
+
+  deleteFilter "DeleteFilter" {
+    path = "github.com/cloudquery/cq-provider-azure/client.DeleteSubscriptionFilter"
+  }
+
+  column "public_ip_address_properties_format" {
+    skip_prefix = true
+  }
+
+  column "ip_configuration" {
+    skip_prefix = true
+  }
+
+  column "ip_configuration_properties_format" {
+    skip_prefix = true
+  }
+
+  column "public_ip_address" {
+    type = "json"
+    generate_resolver = true
+  }
+
+  column "subnet" {
+    type = "json"
+    generate_resolver = true
+  }
+}
