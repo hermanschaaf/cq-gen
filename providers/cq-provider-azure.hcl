@@ -825,3 +825,86 @@ resource "azure" "monitor" "activity_log_alerts" {
   }
 }
 
+
+
+resource "azure" "network" "security_groups" {
+  path = "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network.SecurityGroup"
+  description = "Azure network security group"
+  limit_depth = 1
+
+  userDefinedColumn "subscription_id" {
+    type = "string"
+    description = "Azure subscription id"
+    resolver "resolveAzureSubscription" {
+      path = "github.com/cloudquery/cq-provider-azure/client.ResolveAzureSubscription"
+    }
+  }
+
+  deleteFilter "AzureSubscription" {
+    path = "github.com/cloudquery/cq-provider-azure/client.DeleteSubscriptionFilter"
+  }
+
+
+  options {
+    primary_keys = [
+      "subscription_id",
+      "id"]
+  }
+
+  multiplex "AzureSubscription" {
+    path = "github.com/cloudquery/cq-provider-azure/client.SubscriptionMultiplex"
+  }
+
+
+  column "security_group_properties_format" {
+    skip_prefix = true
+  }
+
+  column "network_interfaces" {
+    skip = true
+  }
+
+  column "subnets" {
+    skip = true
+  }
+
+  relation "azure" "network" "security_group_security_rules" {
+    path = "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network.SecurityRule"
+
+    column "security_rule_properties_format" {
+      skip_prefix = true
+    }
+  }
+
+
+  relation "azure" "network" "security_group_flow_logs" {
+    path = "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network.FlowLog"
+
+    column "flow_log_properties_format" {
+      skip_prefix = true
+    }
+
+    column "flow_analytics_configuration_network_watcher_flow_analytics_configuration_enabled" {
+      description = "Flag to enable/disable traffic analytics for network watcher"
+      rename = "flow_analytics_configuration_enabled"
+    }
+
+    column "flow_analytics_configuration_network_watcher_flow_analytics_configuration_workspace_id" {
+      description = "The resource guid of the attached workspace for network watcher"
+      rename = "flow_analytics_configuration_workspace_id"
+    }
+
+    column "flow_analytics_configuration_network_watcher_flow_analytics_configuration_workspace_region" {
+      description = "The location of the attached workspace for network watcher"
+      rename = "flow_analytics_configuration_workspace_region"
+    }
+    column "flow_analytics_configuration_network_watcher_flow_analytics_configuration_workspace_resource_id" {
+      description = "Resource Id of the attached workspace for network watcher"
+      rename = "flow_analytics_configuration_workspace_resource_id"
+    }
+    column "flow_analytics_configuration_network_watcher_flow_analytics_configuration_traffic_analytics_interval" {
+      description = "The interval in minutes which would decide how frequently TA service should do flow analytics for network watcher"
+      rename = "flow_analytics_configuration_traffic_analytics_interval"
+    }
+  }
+}
