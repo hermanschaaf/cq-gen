@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-
 	resource := flag.String("resource", "", "resource name to generate")
 	domain := flag.String("domain", "", "domain of resource to generate")
 	config := flag.String("config", "config.hcl", "resource name to generate")
