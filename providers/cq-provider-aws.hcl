@@ -1,6 +1,6 @@
 service          = "aws"
 
-output_directory = "../cq-provider-aws/resources"
+output_directory = "../forks/cq-provider-aws/resources"
 
 resource "aws" "autoscaling" "launch_configurations" {
   path = "github.com/aws/aws-sdk-go-v2/service/autoscaling/types.LaunchConfiguration"
@@ -1690,6 +1690,64 @@ resource "aws" "elasticbeanstalk" "environments" {
     generate_resolver = true
   }
 }
+
+
+resource "aws" "elbv2" "listeners" {
+  path = "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types.Listener"
+  ignoreError "IgnoreAccessDenied" {
+    path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
+  }
+  multiplex "AwsAccountRegion" {
+    path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
+  }
+  deleteFilter "AccountRegionFilter" {
+    path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
+  }
+  userDefinedColumn "account_id" {
+    type        = "string"
+    description = "The AWS Account ID of the resource."
+    resolver "resolveAWSAccount" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
+    }
+  }
+  userDefinedColumn "region" {
+    type        = "string"
+    description = "The AWS Region of the resource."
+    resolver "resolveAWSRegion" {
+      path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
+    }
+  }
+
+  relation "aws" "elbv2" "certificates" {
+    path = "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types.Certificate"
+  }
+
+  options {
+    primary_keys = [
+      "arn"
+    ]
+  }
+
+  relation "aws" "elbv2" "default_actions" {
+    path = "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types.Action"
+    column "authenticate_cognito_config" {
+      rename = "cognito"
+      skip_prefix = true
+    }
+
+  }
+
+  column "listener_arn" {
+    rename = "arn"
+  }
+
+  userDefinedColumn "tags" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+
 
 resource "aws" "elbv2" "target_groups" {
   path = "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types.TargetGroup"

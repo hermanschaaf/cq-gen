@@ -389,7 +389,7 @@ func (b builder) buildTableColumn(table *TableDefinition, fieldPath, columnPath 
 		}
 	case TypeEmbedded:
 		b.logger.Debug("Building embedded column", "table", table.TableName, "column", field.Name())
-		if err := b.buildColumns(table, getNamedType(field.Type()), resource, getParentPath(fieldPath, field.Name(), false), getParentPath(columnPath, field.Name(), cfg.SkipPrefix), field.Name(), spec); err != nil {
+		if err := b.buildColumns(table, getNamedType(field.Type()), resource, getParentPath(fieldPath, field.Name(), false, ""), getParentPath(columnPath, field.Name(), cfg.SkipPrefix, cfg.Rename), field.Name(), spec); err != nil {
 			return err
 		}
 
@@ -448,8 +448,11 @@ func (b builder) getColumnName(fieldName string, parentFieldPath string) string 
 	return strings.ToLower(fmt.Sprintf("%s_%s", naming.CamelToSnake(parentNameParts), naming.CamelToSnake(fieldName)))
 }
 
-func getParentPath(fieldPath, field string, skipPrefix bool) string {
+func getParentPath(fieldPath, field string, skipPrefix bool, rename string) string {
 	if skipPrefix {
+		if rename != "" {
+			return fmt.Sprintf("%s.%s", rename, field)
+		}
 		return fieldPath
 	}
 	if fieldPath == "" {
