@@ -1,36 +1,66 @@
 package codegen
 
 import (
+	_ "embed"
 	"fmt"
-	"github.com/cloudquery/cq-gen/codegen/config"
+	"log"
 	"path"
+
+	"github.com/cloudquery/cq-gen/codegen/config"
+	"github.com/cloudquery/cq-gen/codegen/template"
 )
 
-func Generate(configPath string, domain string, resourceName string) error {
-	cfg, err := config.Parse(configPath)
-	if err != nil {
-		return err
+//go:embed table.gotpl
+var tableTemplate string
+
+func Generate(configPath, domain, resourceName, outputDir string) error {
+	cfg, diags := config.ParseConfiguration(configPath)
+	if diags.HasErrors() {
+		for _, d := range diags {
+			log.Printf("configuration error: %s", d.Error())
+		}
+		return fmt.Errorf("failed to parse configuration")
 	}
 	resources, err := buildResources(cfg, domain, resourceName)
 	if err != nil {
 		return err
 	}
+	if outputDir == "" {
+		outputDir = cfg.OutputDirectory
+	}
 
 	for _, resource := range resources {
-		fileName := fmt.Sprintf("%s_%s.go", resource.Config.Domain, resource.Config.Name)
-		if resource.Config.Domain == "" {
-			fileName = fmt.Sprintf("%s.go", resource.Config.Name)
-		}
-		err = Render(Options{
-			Template:    "codegen/table.gotpl",
-			Filename:    path.Join(cfg.OutputDirectory, fileName),
-			PackageName: path.Base(cfg.OutputDirectory),
+		err = template.Render(template.Options{
+			Template:    tableTemplate,
+			Filename:    path.Join(outputDir, resource.Table.FileName),
+			PackageName: path.Base(outputDir),
 			Data:        resource,
-			Funcs:       nil,
+			Funcs: map[string]interface{}{
+				"call": Call,
+			},
 		})
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func Call(p *ResolverDefinition) string {
+	if p == nil {
+		return ""
+	}
+	if p.Type == nil {
+		return p.Signature
+	}
+	pkgPath := p.Type.Pkg().Path()
+	pkg := template.CurrentImports.Lookup(pkgPath)
+
+	if pkg != "" {
+		pkg += "."
+	}
+	if p.Signature != "" {
+		return p.Signature
+	}
+	return pkg + p.Type.Name()
 }

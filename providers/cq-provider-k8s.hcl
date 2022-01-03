@@ -1,8 +1,24 @@
-service = "k8s"
-output_directory = "../forks/cq-provider-k8s/resources"
+service          = "k8s"
+output_directory = "../cq-provider-k8s/resources"
 
-resource "k8s" "core" "nodes" {
-  path = "k8s.io/api/core/v1.Node"
+#description_source "openapi" {
+#  #  https://github.com/digitalocean/openapi/blob/main/specification/DigitalOcean-public.v2.yaml
+#  path = "C:\\Users\\Ron-Work\\Downloads\\k8s_openapi.yml"
+#}
+
+resource "k8s" "core" "namespaces" {
+  path = "k8s.io/api/core/v1.Namespace"
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
 
   column "type_meta" {
     skip_prefix = true
@@ -12,462 +28,672 @@ resource "k8s" "core" "nodes" {
     skip_prefix = true
   }
 
-  column "managed_fields" {
-    skip = true
-  }
-
   column "owner_references" {
-    description = "List of objects depended by this object."
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
-  column "kind" {
-    description = "Kind is a string value representing the REST resource this object represents."
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
   }
 
-  column "api_version" {
-    description = "Defines the versioned schema of this representation of an object."
+  column "spec_finalizers" {
+    rename = "finalizers"
+  }
+  column "status_phase" {
+    rename = "phase"
+  }
+  column "status_conditions" {
+    type              = "json"
+    rename            = "conditions"
+    generate_resolver = true
   }
 
-  column "name" {
-    description = "Unique name within a namespace."
+  relation "k8s" "" "owner_references" {
+    options {
+      primary_keys = ["resource_uid", "uid"]
+    }
+    path = "k8s.io/apimachinery/pkg/apis/meta/v1.OwnerReference"
+
+    resolver "OwnerReferenceResolver" {
+      path = "github.com/cloudquery/cq-provider-k8s/client.OwnerReferenceResolver"
+    }
+    userDefinedColumn "resource_uid" {
+      type        = "string"
+      description = "resources this owner object references"
+    }
+    column "uid" {
+      rename = "owner_uid"
+    }
   }
 
-  column "generate_name" {
-    skip = true
+}
+
+
+resource "k8s" "core" "limit_ranges" {
+  path = "k8s.io/api/core/v1.LimitRange"
+
+  options {
+    primary_keys = ["uid"]
   }
 
-  column "namespace" {
-    description = "Namespace defines the space within which each name must be unique."
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
   }
 
-  column "self_link" {
-    skip = true
+  column "type_meta" {
+    skip_prefix = true
   }
 
-  column "uid" {
-    description = "UID is the unique in time and space value for this object."
+  column "object_meta" {
+    skip_prefix = true
   }
 
-  column "resource_version" {
-    description = "An opaque value that represents the internal version of this object."
-  }
-
-  column "generation" {
-    description = "A sequence number representing a specific generation of the desired state."
-  }
-
-  column "deletion_grace_period_seconds" {
-    description = "Number of seconds allowed for this object to gracefully terminate."
-  }
-
-  column "labels" {
-    description = "Map of string keys and values that can be used to organize and categorize objects."
-  }
-
-  column "annotations" {
-    description = "Annotations is an unstructured key value map stored with a resource that may be set by external tools."
-  }
-
-  column "finalizers" {
-    description = "List of finalizers"
-  }
-
-  column "cluster_name" {
-    description = "The name of the cluster which the object belongs to."
-  }
-
-  # Spec fields
   column "spec" {
     skip_prefix = true
   }
 
-  column "pod_c_id_r" {
-    rename = "pod_cidr"
-    description = "Represents the pod IP range assigned to the node."
-  }
-
-  column "pod_c_id_rs" {
-    rename = "pod_cidrs"
-    description = "Represents the IP ranges assigned to the node for usage by Pods on that node"
-  }
-
-  column "taints" {
-    type = "json"
+  column "owner_references" {
+    type              = "json"
     generate_resolver = true
   }
 
-  column "config_source" {
-    skip = true
-  }
-
-  column "do_not_use_external_id" {
-    skip = true
-  }
-
-  # Status fields
-  column "status" {
-    skip_prefix = true
-  }
-
-  column "node_info" {
-    skip_prefix = true
-  }
-
-  column "conditions" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "volumes_attached" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "images" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "config" {
-    type = "json"
+  column "managed_fields" {
+    type              = "json"
     generate_resolver = true
   }
 }
 
 
-resource "k8s" "core" "pods" {
-  path = "k8s.io/api/core/v1.Pod"
+resource "k8s" "core" "resource_quotas" {
+  path = "k8s.io/api/core/v1.ResourceQuota"
 
-  # ======================================== Type meta ========================================
+  options {
+    primary_keys = ["uid"]
+  }
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
   column "type_meta" {
     skip_prefix = true
   }
 
-  column "kind" {
-    description = "Kind is a string value representing the REST resource this object represents."
-  }
-
-  column "api_version" {
-    description = "Defines the versioned schema of this representation of an object."
-  }
-
-  # ======================================== Object meta ========================================
   column "object_meta" {
     skip_prefix = true
   }
 
-  column "name" {
-    description = "Unique name within a namespace."
-  }
-
-  column "namespace" {
-    description = "Namespace defines the space within which each name must be unique."
-  }
-
-  column "generate_name" {
-    skip = true
-  }
-
-  column "self_link" {
-    skip = true
-  }
-
-  column "uid" {
-    description = "UID is the unique in time and space value for this object."
-  }
-
-  column "resource_version" {
-    description = "An opaque value that represents the internal version of this object."
-  }
-
-  column "generation" {
-    description = "A sequence number representing a specific generation of the desired state."
-  }
-
-  column "deletion_grace_period_seconds" {
-    description = "Number of seconds allowed for this object to gracefully terminate."
-  }
-
-  column "labels" {
-    description = "Map of string keys and values that can be used to organize and categorize objects."
-  }
-
-  column "annotations" {
-    description = "Annotations is an unstructured key value map stored with a resource that may be set by external tools."
-  }
-
-  column "owner_references" {
-    description = "List of objects depended by this object."
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "finalizers" {
-    description = "List of finalizers"
-  }
-
-  column "cluster_name" {
-    description = "The name of the cluster which the object belongs to."
-  }
-
-  column "managed_fields" {
-    skip = true
-  }
-
-  # ======================================== Spec ========================================
   column "spec" {
     skip_prefix = true
   }
 
-  column "affinity" {
-    type = "json"
+  column "owner_references" {
+    type              = "json"
     generate_resolver = true
   }
 
-  column "deprecated_service_account" {
-    skip = true
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "k8s" "core" "endpoints" {
+  path = "k8s.io/api/core/v1.Endpoints"
+
+  options {
+    primary_keys = ["uid"]
   }
 
-  column "dns_config" {
-    type = "json"
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  column "type_meta" {
+    skip_prefix = true
+  }
+
+  column "object_meta" {
+    skip_prefix = true
+  }
+
+  column "subsets" {
+    skip_prefix = true
+  }
+
+  column "owner_references" {
+    type              = "json"
     generate_resolver = true
   }
 
-  column "host_aliases" {
-    type = "json"
+  column "managed_fields" {
+    type              = "json"
     generate_resolver = true
+  }
+}
+
+
+resource "k8s" "core" "service_accounts" {
+  path = "k8s.io/api/core/v1.ServiceAccount"
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  column "type_meta" {
+    skip_prefix = true
+  }
+
+  column "object_meta" {
+    skip_prefix = true
+  }
+
+  column "secrets" {
+    skip_prefix = true
   }
 
   column "image_pull_secrets" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "readiness_gates" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "security_context" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "tolerations" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  column "topology_spread_constraints" {
-    type = "json"
-    generate_resolver = true
-  }
-
-  # ======================================== Status ========================================
-  column "status" {
     skip_prefix = true
   }
 
-  column "q_os_class" {
-    rename = "qos_class"
+  column "automount_service_account_token" {
+    skip_prefix = true
   }
 
-  column "conditions" {
-    type = "json"
+  column "owner_references" {
+    type              = "json"
     generate_resolver = true
   }
 
-  column "pod_ip_s" {
-    rename = "pod_ips"
-    type = "stringarray"
-  }
-
-  column "init_container_statuses" {
-    skip = true
-  }
-
-  column "container_statuses" {
-    skip = true
-  }
-
-  column "ephemeral_container_statuses" {
-    skip = true
-  }
-
-  column "volumes" {
-    skip = true
-  }
-
-  # ======================================== Spec -> Volumes ========================================
-
-  relation "k8s" "core" "volumes" {
-    path = "k8s.io/api/core/v1.Volume"
-
-    column "volume_source" {
-      skip_prefix = true
-    }
-
-    column "git_repo" {
-      skip = true
-    }
-
-    column "i_s_c_s_i" {
-      rename = "iscsi"
-      type = "json"
-      generate_resolver = true
-    }
-
-    column "ephemeral" {
-      type = "json"
-      generate_resolver = true
-    }
-
-    column "c_s_i" {
-      rename = "csi"
-      type = "json"
-      generate_resolver = true
-    }
-
-    column "storage_os" {
-      type = "json"
-      generate_resolver = true
-    }
-  }
-  # ======================================== Status ========================================
-  relation "k8s" "core" "init_container_statuses" {
-    path = "k8s.io/api/core/v1.ContainerStatus"
-
-    column "state" {
-      type = "json"
-      generate_resolver = true
-    }
-
-    column "last_termination_state" {
-      rename = "last_state"
-      type = "json"
-      generate_resolver = true
-    }
-  }
-
-  relation "k8s" "core" "container_statuses" {
-    path = "k8s.io/api/core/v1.ContainerStatus"
-
-    column "state" {
-      type = "json"
-      generate_resolver = true
-    }
-
-    column "last_termination_state" {
-      rename = "last_state"
-      type = "json"
-      generate_resolver = true
-    }
-  }
-
-  relation "k8s" "core" "ephemeral_container_statuses" {
-    path = "k8s.io/api/core/v1.ContainerStatus"
-
-    column "state" {
-      type = "json"
-      generate_resolver = true
-    }
-
-    column "last_termination_state" {
-      rename = "last_state"
-      type = "json"
-      generate_resolver = true
-    }
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
   }
 }
 
-resource "k8s" "core" "services" {
-  path = "k8s.io/api/core/v1.Service"
 
-  # ======================================== Type meta ========================================
+resource "k8s" "apps" "deployments" {
+  path = "k8s.io/api/apps/v1.Deployment"
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  column "object_meta" {
+    skip_prefix = true
+  }
   column "type_meta" {
     skip_prefix = true
   }
+  column "spec" {
+    skip_prefix = true
+  }
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+  column "template" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
 
-  column "kind" {
-    description = "Kind is a string value representing the REST resource this object represents."
+
+resource "k8s" "batch" "cron_jobs" {
+  path = "k8s.io/api/batch/v1.CronJob"
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
   }
 
-  column "api_version" {
-    description = "Defines the versioned schema of this representation of an object."
+  options {
+    primary_keys = ["uid"]
   }
 
-  # ======================================== Object meta ========================================
   column "object_meta" {
     skip_prefix = true
   }
 
-  column "name" {
-    description = "Unique name within a namespace."
-  }
-
-  column "namespace" {
-    description = "Namespace defines the space within which each name must be unique."
-  }
-
-  column "generate_name" {
-    skip = true
-  }
-
-  column "self_link" {
-    skip = true
-  }
-
-  column "uid" {
-    description = "UID is the unique in time and space value for this object."
-  }
-
-  column "resource_version" {
-    description = "An opaque value that represents the internal version of this object."
-  }
-
-  column "generation" {
-    description = "A sequence number representing a specific generation of the desired state."
-  }
-
-  column "deletion_grace_period_seconds" {
-    description = "Number of seconds allowed for this object to gracefully terminate."
-  }
-
-  column "labels" {
-    description = "Map of string keys and values that can be used to organize and categorize objects."
-  }
-
-  column "annotations" {
-    description = "Annotations is an unstructured key value map stored with a resource that may be set by external tools."
-  }
-
   column "owner_references" {
-    description = "List of objects depended by this object."
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
-  column "finalizers" {
-    description = "List of finalizers"
-  }
-
-  column "cluster_name" {
-    description = "The name of the cluster which the object belongs to."
-  }
-
   column "managed_fields" {
-    skip = true
+    type              = "json"
+    generate_resolver = true
   }
 
-  # ======================================== Spec ========================================
   column "spec" {
     skip_prefix = true
   }
 
-  # ======================================== Status ========================================
+  column "type_meta" {
+    skip = true
+  }
+
+  column "job_template" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+
   column "status" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "k8s" "batch" "jobs" {
+  path = "k8s.io/api/batch/v1.Job"
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  column "object_meta" {
     skip_prefix = true
+  }
+
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "spec" {
+    skip_prefix = true
+  }
+
+  column "type_meta" {
+    skip = true
+  }
+
+  column "template" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "k8s" "apps" "daemon_sets" {
+  path = "k8s.io/api/apps/v1.DaemonSet"
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  column "object_meta" {
+    skip_prefix = true
+  }
+
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+
+  column "spec" {
+    skip_prefix = true
+  }
+
+  column "type_meta" {
+    skip = true
+  }
+
+  column "template" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "k8s" "apps" "replica_sets" {
+  path = "k8s.io/api/apps/v1.ReplicaSet"
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  // Changing column to user defined: table=k8s_apps_replica_sets column=Template valueType=TypeInvalid userDefinedType=json
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  column "object_meta" {
+    skip_prefix = true
+  }
+
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "spec" {
+    skip_prefix = true
+  }
+
+  column "type_meta" {
+    skip = true
+  }
+
+  column "template" {
+    type              = "json"
+    generate_resolver = true
+  }
+  column "template" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "k8s" "apps" "stateful_sets" {
+  path = "k8s.io/api/apps/v1.StatefulSet"
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  column "object_meta" {
+    skip_prefix = true
+  }
+
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "spec" {
+    skip_prefix = true
+  }
+
+  column "type_meta" {
+    skip = true
+  }
+
+  column "template" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "volume_claim_templates" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+resource "k8s" "rbac" "roles" {
+  path = "k8s.io/api/rbac/v1.Role"
+
+  column "type_meta" {
+    skip_prefix = true
+  }
+
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  options {
+    primary_keys = ["uid"]
+  }
+
+  column "object_meta" {
+    skip_prefix = true
+  }
+
+  relation "k8s" "rbac" "role_rules" {
+    path = "k8s.io/api/rbac/v1.PolicyRule"
+
+    column "non_resource_url_s" {
+      rename = "non_resource_urls"
+    }
+  }
+
+}
+
+
+resource "k8s" "rbac" "role_bindings" {
+  path = "k8s.io/api/rbac/v1.RoleBinding"
+
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  options {
+    primary_keys = ["uid"]
+  }
+  column "type_meta" {
+    skip_prefix = true
+  }
+  column "object_meta" {
+    skip_prefix = true
+  }
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+}
+
+
+resource "k8s" "networking" "network_policies" {
+  path = "k8s.io/api/networking/v1.NetworkPolicy"
+
+  multiplex "ContextMultiplex" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.ContextMultiplex"
+  }
+  deleteFilter "DeleteContextFilter" {
+    path = "github.com/cloudquery/cq-provider-k8s/client.DeleteContextFilter"
+  }
+
+  options {
+    primary_keys = ["uid"]
+  }
+  column "type_meta" {
+    skip_prefix = true
+  }
+  column "object_meta" {
+    skip_prefix = true
+  }
+  column "spec" {
+    skip_prefix = true
+  }
+  column "owner_references" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  column "managed_fields" {
+    type              = "json"
+    generate_resolver = true
+  }
+  relation "k8s" "networking" "ingress" {
+    path = "k8s.io/api/networking/v1.NetworkPolicyIngressRule"
+
+    userDefinedColumn "network_policy_uid" {
+      type        = "string"
+      //argument ("uid")
+      description = "The name of the Availability Zone.."
+      resolver "parentPathResolver" {
+        path          = "github.com/cloudquery/cq-provider-sdk/provider/schema.ParentResourceFieldResolver"
+        generate      = true
+        path_resolver = true
+      }
+    }
+
+    relation "k8s" "networking" "from" {
+      path = "k8s.io/api/networking/v1.NetworkPolicyPeer"
+
+      column "pod_selector_match_expressions" {
+        type              = "json"
+        generate_resolver = true
+      }
+      column "ip_block_c_id_r" {
+        rename = "ip_block_cidr"
+      }
+
+
+      column "namespace_selector_match_expressions" {
+        type              = "json"
+        generate_resolver = true
+      }
+    }
+  }
+
+  relation "k8s" "networking" "egress" {
+    path = "k8s.io/api/networking/v1.NetworkPolicyEgressRule"
+
+    userDefinedColumn "network_policy_uid" {
+      type        = "string"
+      //argument ("uid")
+      description = "The name of the Availability Zone.."
+      resolver "parentPathResolver" {
+        path          = "github.com/cloudquery/cq-provider-sdk/provider/schema.ParentResourceFieldResolver"
+        generate      = true
+        path_resolver = true
+      }
+    }
+
+    relation "k8s" "networking" "to" {
+      path = "k8s.io/api/networking/v1.NetworkPolicyPeer"
+
+      column "ip_block_c_id_r" {
+        rename = "ip_block_cidr"
+      }
+
+      column "pod_selector_match_expressions" {
+        type              = "json"
+        generate_resolver = true
+      }
+
+      column "namespace_selector_match_expressions" {
+        type              = "json"
+        generate_resolver = true
+      }
+    }
+  }
+}
+
+
+resource "k8s" "meta" "owner_references" {
+  path = "k8s.io/apimachinery/pkg/apis/meta/v1.OwnerReference"
+  userDefinedColumn "resource_cq_id" {
+    description = "cq_id of parent resource"
+    type        = "uuid"
+  }
+  options {
+    primary_keys = ["resource_cq_id", "uid"]
+  }
+}
+
+resource "k8s" "meta" "managed_fields" {
+  path = "k8s.io/apimachinery/pkg/apis/meta/v1.ManagedFieldsEntry"
+  userDefinedColumn "resource_cq_id" {
+    description = "cq_id of parent resource"
+    type        = "uuid"
+  }
+  options {
+    primary_keys = ["resource_cq_id", "cq_id"]
   }
 }

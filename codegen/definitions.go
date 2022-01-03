@@ -1,44 +1,48 @@
 package codegen
 
 import (
-	"github.com/cloudquery/cq-gen/codegen/config"
-	"github.com/cloudquery/cq-provider-sdk/provider/schema"
 	"go/types"
 	"strings"
+
+	"github.com/cloudquery/cq-gen/codegen/config"
+	"github.com/cloudquery/cq-provider-sdk/provider/schema"
 )
 
 type TableDefinition struct {
-	Name        string
-	DomainName  string
-	TableName   string
-	Description string
-	Columns     []ColumnDefinition
-	Relations   []*TableDefinition
+	Name          string
+	FileName      string
+	TableFuncName string
+	TableName     string
+	Description   string
+	Columns       []ColumnDefinition
+	Relations     []*TableDefinition
 	// schema.TableResolver definition
-	Resolver *FunctionDefinition
+	Resolver *ResolverDefinition
 	// Table extra functions
-	IgnoreErrorFunc      *FunctionDefinition
-	MultiplexFunc        *FunctionDefinition
-	DeleteFilterFunc     *FunctionDefinition
-	PostResourceResolver *FunctionDefinition
+	IgnoreErrorFunc      *ResolverDefinition
+	MultiplexFunc        *ResolverDefinition
+	DeleteFilterFunc     *ResolverDefinition
+	PostResourceResolver *ResolverDefinition
 
 	// Table Creation Options
 	Options *config.TableOptionsConfig
 
 	// Functions that were created by configuration request
-	Functions []*FunctionDefinition
+	Functions []*ResolverDefinition
 
 	// parent table definition
 	parentTable *TableDefinition
+	path        string
 }
 
-func (t TableDefinition) UniqueResolvers() []*FunctionDefinition {
+func (t TableDefinition) UniqueResolvers() []*ResolverDefinition {
 
-	rd := make([]*FunctionDefinition, 0)
-	rd = append(rd, t.Resolver)
+	rd := make([]*ResolverDefinition, 0)
 	existingResolvers := make(map[string]bool)
-
 	for _, f := range t.Functions {
+		if !f.Generate {
+			continue
+		}
 		if _, ok := existingResolvers[f.Name]; ok {
 			continue
 		}
@@ -58,15 +62,21 @@ func (t TableDefinition) UniqueResolvers() []*FunctionDefinition {
 	return rd
 }
 
-func (t TableDefinition) RelationExists(name string) bool {
+func (t TableDefinition) RelationExists(cfg config.RelationConfig) bool {
 	for _, rel := range t.Relations {
-		if rel.Name == name {
+		if rel.Name == cfg.Name {
 			return true
 		}
-		if strings.HasSuffix(rel.DomainName, name) {
+		if rel.Name == cfg.Rename {
 			return true
 		}
-		if strings.HasSuffix(rel.TableName, name) {
+		if rel.path == cfg.Path && cfg.Name != rel.Name {
+			return true
+		}
+		if strings.HasSuffix(rel.TableFuncName, cfg.Name) {
+			return true
+		}
+		if strings.HasSuffix(rel.TableName, cfg.Name) {
 			return true
 		}
 	}
@@ -77,13 +87,14 @@ type ColumnDefinition struct {
 	Name        string
 	Type        schema.ValueType
 	Description string
-	Resolver    *FunctionDefinition
+	Resolver    *ResolverDefinition
 }
 
-type FunctionDefinition struct {
+type ResolverDefinition struct {
 	Name      string
 	Signature string
 	Body      string
 	Type      types.Object
 	Arguments string
+	Generate  bool
 }
