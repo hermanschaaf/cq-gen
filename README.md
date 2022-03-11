@@ -53,7 +53,7 @@ A resource may define relation resources, [columns](#column), [userDefinedColumn
 
 Relations are the same as a resource, yet the table generated is part of the parent resource, and an ID column is automatically added based on the relation's parent name.
 
-####Resource Example:
+#### Resource Example:
 ```hcl
 resource "aws" "redshift" "subnet_groups" {
   path = "github.com/aws/aws-sdk-go-v2/service/redshift/types.ClusterSubnetGroup"
