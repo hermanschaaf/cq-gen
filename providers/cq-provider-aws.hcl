@@ -1,6 +1,11 @@
 service = "aws"
 
-output_directory = "../cq-provider-aws/resources/services/ec2"
+output_directory = "../cq-provider-aws/resources/services/accessanalyzer"
+
+description_modifier "remove_this_member_is_required" {
+  words = ["  This member is required."]
+}
+
 
 resource "aws" "applicationautoscaling" "policies" {
   path        = "github.com/aws/aws-sdk-go-v2/service/applicationautoscaling/types.ScalingPolicy"
@@ -4517,13 +4522,13 @@ resource "aws" "redshift" "subnet_groups" {
 }
 
 
-resource "aws" "access_analyzer" "analyzer" {
+resource "aws" "access_analyzer" "analyzers" {
   path = "github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types.AnalyzerSummary"
   ignoreError "IgnoreAccessDenied" {
     path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
   }
   multiplex "AwsAccount" {
-    path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
+    path = "github.com/cloudquery/cq-provider-aws/client.ServiceAccountRegionMultiplexer"
   }
   deleteFilter "AccountRegionFilter" {
     path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
@@ -4543,18 +4548,26 @@ resource "aws" "access_analyzer" "analyzer" {
     }
   }
 
+  options {
+    primary_keys = ["arn"]
+  }
+
   column "tags" {
     // TypeJson
     type = "json"
   }
 
-  relation "aws" "access_analyzer" "finding" {
-    path = "github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types.FindingSummary"
-
-    column "id" {
-      type   = "string"
-      rename = "finding_id"
+  user_relation "aws" "access_analyzer" "findings" {
+    options {
+      primary_keys = [
+        "analyzer_cq_id", "id"
+      ]
     }
+    path = "github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types.FindingSummary"
+  }
+
+  user_relation "aws" "access_analyzer" "archive_rules" {
+    path = "github.com/aws/aws-sdk-go-v2/service/accessanalyzer/types.ArchiveRuleSummary"
   }
 }
 
