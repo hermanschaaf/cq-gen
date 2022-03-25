@@ -1,6 +1,6 @@
 service = "aws"
 
-output_directory = "../cq-provider-aws/resources/services/ec2"
+output_directory = "../cq-provider-aws/resources/services/mq"
 
 resource "aws" "applicationautoscaling" "policies" {
   path        = "github.com/aws/aws-sdk-go-v2/service/applicationautoscaling/types.ScalingPolicy"
@@ -5579,7 +5579,7 @@ resource "aws" "mq" "brokers" {
     path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
   }
   multiplex "AwsAccountRegion" {
-    path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
+    path = "github.com/cloudquery/cq-provider-aws/client.ServiceAccountRegionMultiplexer"
   }
   deleteFilter "AccountRegionFilter" {
     path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
@@ -5600,6 +5600,17 @@ resource "aws" "mq" "brokers" {
     }
   }
 
+  options {
+    primary_keys = [
+      "account_id", "id"
+    ]
+  }
+
+  column "broker_arn" {
+    rename = "arn"
+  }
+
+
   column "auto_minor_version_upgrade" {
     description = "Enables automatic upgrades to new minor versions for brokers, as Apache releases the versions."
   }
@@ -5611,6 +5622,10 @@ resource "aws" "mq" "brokers" {
 
   column "configurations" {
     skip = true
+  }
+
+  column "broker_id" {
+    rename = "id"
   }
 
   column "deployment_mode" {
@@ -5657,32 +5672,12 @@ resource "aws" "mq" "brokers" {
     skip = true
   }
 
-  relation "aws" "mq" "configurations" {
+  user_relation "aws" "mq" "configurations" {
     path = "github.com/aws/aws-sdk-go-v2/service/mq.DescribeConfigurationOutput"
-    ignoreError "IgnoreAccessDenied" {
-      path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
-    }
-    multiplex "AwsAccountRegion" {
-      path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
-    }
-    deleteFilter "AccountRegionFilter" {
-      path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
-    }
-    userDefinedColumn "account_id" {
-      description = "The AWS Account ID of the resource."
-      type        = "string"
-      resolver "resolveAWSAccount" {
-        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
-      }
-    }
-    userDefinedColumn "region" {
-      description = "The AWS Region of the resource."
-      type        = "string"
-      resolver "resolveAWSRegion" {
-        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
-      }
-    }
 
+    column "result_metadata_values" {
+      skip = true
+    }
     column "arn" {
       description = "The ARN of the configuration."
     }
@@ -5703,10 +5698,13 @@ resource "aws" "mq" "brokers" {
       description = "The version of the broker engine."
     }
 
+    column "authentication_strategy" {
+      description = "The authentication strategy associated with the configuration."
+    }
+
     column "id" {
       description = "The unique ID that Amazon MQ generates for the configuration."
       type        = "string"
-      rename      = "resource_id"
     }
 
     column "latest_revision_created" {
@@ -5724,33 +5722,26 @@ resource "aws" "mq" "brokers" {
     column "name" {
       description = "The name of the configuration."
     }
+
+    user_relation "aws" "mq" "revisions" {
+      path = "github.com/aws/aws-sdk-go-v2/service/mq.DescribeConfigurationRevisionOutput"
+
+      userDefinedColumn "id" {
+
+      }
+      column "data" {
+        type              = "json"
+        generate_resolver = true
+      }
+
+      column "result_metadata_values" {
+        skip = true
+      }
+    }
   }
 
-  relation "aws" "mq" "users" {
+  user_relation "aws" "mq" "users" {
     path = "github.com/aws/aws-sdk-go-v2/service/mq.DescribeUserOutput"
-    ignoreError "IgnoreAccessDenied" {
-      path = "github.com/cloudquery/cq-provider-aws/client.IgnoreAccessDeniedServiceDisabled"
-    }
-    multiplex "AwsAccountRegion" {
-      path = "github.com/cloudquery/cq-provider-aws/client.AccountRegionMultiplex"
-    }
-    deleteFilter "AccountRegionFilter" {
-      path = "github.com/cloudquery/cq-provider-aws/client.DeleteAccountRegionFilter"
-    }
-    userDefinedColumn "account_id" {
-      description = "The AWS Account ID of the resource."
-      type        = "string"
-      resolver "resolveAWSAccount" {
-        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
-      }
-    }
-    userDefinedColumn "region" {
-      description = "The AWS Region of the resource."
-      type        = "string"
-      resolver "resolveAWSRegion" {
-        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
-      }
-    }
 
     column "broker_id" {
       skip = true
@@ -5760,7 +5751,9 @@ resource "aws" "mq" "brokers" {
       type              = "json"
       generate_resolver = true
     }
-
+    column "result_metadata_values" {
+      skip = true
+    }
     column "username" {
       description = "The username of the ActiveMQ user."
     }
