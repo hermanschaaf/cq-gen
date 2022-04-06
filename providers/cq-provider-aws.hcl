@@ -5675,6 +5675,21 @@ resource "aws" "mq" "brokers" {
   user_relation "aws" "mq" "configurations" {
     path = "github.com/aws/aws-sdk-go-v2/service/mq.DescribeConfigurationOutput"
 
+    userDefinedColumn "account_id" {
+      description = "The AWS Account ID of the resource."
+      type        = "string"
+      resolver "resolveAWSAccount" {
+        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
+      }
+    }
+    userDefinedColumn "region" {
+      description = "The AWS Region of the resource."
+      type        = "string"
+      resolver "resolveAWSRegion" {
+        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
+      }
+    }
+
     column "result_metadata_values" {
       skip = true
     }
@@ -5742,6 +5757,22 @@ resource "aws" "mq" "brokers" {
 
   user_relation "aws" "mq" "users" {
     path = "github.com/aws/aws-sdk-go-v2/service/mq.DescribeUserOutput"
+
+    userDefinedColumn "account_id" {
+      description = "The AWS Account ID of the resource."
+      type        = "string"
+      resolver "resolveAWSAccount" {
+        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSAccount"
+      }
+    }
+
+    userDefinedColumn "region" {
+      description = "The AWS Region of the resource."
+      type        = "string"
+      resolver "resolveAWSRegion" {
+        path = "github.com/cloudquery/cq-provider-aws/client.ResolveAWSRegion"
+      }
+    }
 
     column "broker_id" {
       skip = true
