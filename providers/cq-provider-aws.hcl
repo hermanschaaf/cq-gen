@@ -5757,7 +5757,6 @@ resource "aws" "mq" "brokers" {
 
   user_relation "aws" "mq" "users" {
     path = "github.com/aws/aws-sdk-go-v2/service/mq.DescribeUserOutput"
-
     userDefinedColumn "account_id" {
       description = "The AWS Account ID of the resource."
       type        = "string"
