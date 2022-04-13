@@ -1,10 +1,19 @@
-service = "gcp"
-output_directory = "../cq-provider-gcp/resources"
-description_parser = "gcp"
+service          = "gcp"
+output_directory = "../cq-provider-gcp/resources/services/compute"
+//description_parser = "gcp"
+
+
+description_modifier "remove_read_only" {
+  words = ["[Output Only] "]
+}
+
+description_modifier "remove_field_name" {
+  regex = ".+: "
+}
 
 
 resource "gcp" "kms" "keyrings" {
-  path = "google.golang.org/api/cloudkms/v1.KeyRing"
+  path        = "google.golang.org/api/cloudkms/v1.KeyRing"
   description = "A KeyRing is a toplevel logical grouping of CryptoKeys."
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
@@ -21,7 +30,7 @@ resource "gcp" "kms" "keyrings" {
     path = "github.com/cloudquery/cq-provider-gcp/client.AddGcpMetadata"
   }
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -40,18 +49,18 @@ resource "gcp" "kms" "keyrings" {
   column "create_time" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
 
   userDefinedColumn "location" {
-    type = "string"
+    type        = "string"
     description = "Location of the resource"
   }
 
   relation "gcp" "kms" "cryptoKey" {
-    path = "google.golang.org/api/cloudkms/v1.CryptoKey"
+    path        = "google.golang.org/api/cloudkms/v1.CryptoKey"
     description = "A CryptoKey represents a logical key that can be used for cryptographic operations."
 
     postResourceResolver "PostResourceResolver" {
@@ -64,49 +73,49 @@ resource "gcp" "kms" "keyrings" {
     column "create_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
     column "next_rotation_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
     column "primary_create_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
     column "primary_destroy_event_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
     column "primary_destroy_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
     column "primary_generate_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
     column "primary_import_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
@@ -127,7 +136,7 @@ resource "gcp" "kms" "keyrings" {
     }
 
     userDefinedColumn "project_id" {
-      type = "string"
+      type        = "string"
       description = "GCP Project Id of the resource"
       resolver "resolveResourceProject" {
         path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -135,20 +144,20 @@ resource "gcp" "kms" "keyrings" {
     }
 
     userDefinedColumn "location" {
-      type = "string"
+      type        = "string"
       description = "Location of the resource"
     }
 
     userDefinedColumn "policy" {
-      type = "json"
-      description = "Access control policy for a resource"
+      type              = "json"
+      description       = "Access control policy for a resource"
       generate_resolver = true
     }
   }
 }
 
 resource "gcp" "storage" "buckets" {
-  path = "google.golang.org/api/storage/v1.Bucket"
+  path        = "google.golang.org/api/storage/v1.Bucket"
   description = "The Buckets resource represents a bucket in Cloud Storage"
 
   multiplex "ProjectMultiplex" {
@@ -162,7 +171,7 @@ resource "gcp" "storage" "buckets" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -181,8 +190,8 @@ resource "gcp" "storage" "buckets" {
     rename = "satisfies_pzs"
   }
   column "id" {
-    type = "string"
-    rename = "resource_id"
+    type        = "string"
+    rename      = "resource_id"
     description = "Original Id of the resource"
     resolver "ResolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -190,10 +199,10 @@ resource "gcp" "storage" "buckets" {
   }
 
   relation "gcp" "storage" "acls" {
-    path = "google.golang.org/api/storage/v1.BucketAccessControl"
+    path        = "google.golang.org/api/storage/v1.BucketAccessControl"
     description = "Access controls on the bucket."
     column "id" {
-      type = "string"
+      type   = "string"
       rename = "resource_id"
       resolver "ResolveResourceId" {
         path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -201,28 +210,28 @@ resource "gcp" "storage" "buckets" {
     }
   }
   relation "gcp" "storage" "lifecycle_rules" {
-    path = "google.golang.org/api/storage/v1.BucketLifecycleRule"
+    path        = "google.golang.org/api/storage/v1.BucketLifecycleRule"
     description = "A lifecycle management rule, which is made of an action to take and the condition(s) under which the action will be taken."
   }
   relation "gcp" "storage" "cors" {
-    path = "google.golang.org/api/storage/v1.BucketCors"
+    path        = "google.golang.org/api/storage/v1.BucketCors"
     description = "The bucket's Cross-Origin Resource Sharing (CORS) configuration."
   }
 
   relation "gcp" "storage" "bucket_policy" {
     path = "google.golang.org/api/storage/v1.Policy"
     column "id" {
-      type = "string"
+      type        = "string"
       description = "Original Id of the resource"
-      rename = "resource_id"
+      rename      = "resource_id"
     }
   }
 
   relation "gcp" "storage" "default_object_acls" {
-    path = "google.golang.org/api/storage/v1.ObjectAccessControl"
+    path        = "google.golang.org/api/storage/v1.ObjectAccessControl"
     description = "Default access controls to apply to new objects when no ACL is provided."
     column "id" {
-      type = "string"
+      type   = "string"
       rename = "resource_id"
       resolver "ResolveResourceId" {
         path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -239,7 +248,7 @@ resource "gcp" "sql" "instances" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -255,7 +264,7 @@ resource "gcp" "sql" "instances" {
   }
 
   column "settings_database_flags" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
   column "current_disk_size" {
@@ -273,8 +282,8 @@ resource "gcp" "sql" "instances" {
   }
   column "id" {
     description = "Original Id of the resource"
-    type = "string"
-    rename = "resource_id"
+    type        = "string"
+    rename      = "resource_id"
   }
 }
 
@@ -286,7 +295,7 @@ resource "gcp" "cloudfunctions" "function" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -311,17 +320,17 @@ resource "gcp" "cloudfunctions" "function" {
     description = "Name of the Cloud Build Custom Worker Pool that should be used to build the function"
   }
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
 }
 
 resource "gcp" "crm" "projects" {
-  path = "google.golang.org/api/cloudresourcemanager/v3.Project"
+  path        = "google.golang.org/api/cloudresourcemanager/v3.Project"
   description = "A project is a high-level Google Cloud entity"
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
 
@@ -347,7 +356,8 @@ resource "gcp" "iam" "service_accounts" {
   options {
     primary_keys = [
       "project_id",
-      "id"]
+      "id"
+    ]
   }
 
   // deprecated
@@ -381,7 +391,7 @@ resource "gcp" "iam" "service_accounts" {
     column "valid_after_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
@@ -389,7 +399,7 @@ resource "gcp" "iam" "service_accounts" {
     column "valid_before_time" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
@@ -405,7 +415,7 @@ resource "gcp" "iam" "roles" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -425,7 +435,7 @@ resource "gcp" "domains" "registration" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -444,11 +454,11 @@ resource "gcp" "domains" "registration" {
   }
 
   column "custom_dns_ds_records" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
   column "google_domains_dns_ds_records" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
@@ -511,14 +521,14 @@ resource "gcp" "domains" "registration" {
 
 
 resource "gcp" "compute" "instances" {
-  path = "google.golang.org/api/compute/v1.Instance"
+  path        = "google.golang.org/api/compute/v1.Instance"
   description = "Represents an Instance resource  An instance is a virtual machine that is hosted on Google Cloud Platform For more information, read Virtual Machine Instances"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -526,7 +536,7 @@ resource "gcp" "compute" "instances" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
   column "name" {
@@ -573,7 +583,7 @@ resource "gcp" "compute" "instances" {
       skip_prefix = true
     }
     column "guest_os_features" {
-      type = "stringarray"
+      type              = "stringarray"
       generate_resolver = true
     }
     column "source_image" {
@@ -595,7 +605,7 @@ resource "gcp" "compute" "instances" {
     column "creation_timestamp" {
       type = "timestamp"
       resolver "ISODateResolver" {
-        path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+        path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
         path_resolver = true
       }
     }
@@ -616,18 +626,74 @@ resource "gcp" "compute" "instances" {
 
 
   column "metadata_items" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
   column "guest_accelerators" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 }
 
 
+resource "gcp" "compute" "instance_groups" {
+  path = "google.golang.org/api/compute/v1.InstanceGroup"
+  multiplex "ProjectMultiplex" {
+    path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
+  }
+
+  options {
+    primary_keys = [
+      "project_id",
+      "id"
+    ]
+  }
+
+  column "creation_timestamp" {
+    type              = "timestamp"
+    generate_resolver = true
+    //Resolver:    client.ISODateResolver("CreationTimestamp"),
+  }
+
+  userDefinedColumn "project_id" {
+    type        = "string"
+    description = "GCP Project Id of the resource"
+    resolver "resolveResourceProject" {
+      path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
+    }
+  }
+  #
+  #  column "name" {
+  #    description = "Name of the resource provided by the client when the resource is created"
+  #  }
+  #  column "labels" {
+  #    description = "Labels for this resource"
+  #  }
+
+
+  column "named_ports" {
+    type              = "json"
+    generate_resolver = true
+  }
+
+  user_relation "gcp" "compute" "instances" {
+    path = "google.golang.org/api/compute/v1.InstanceWithNamedPorts"
+
+    column "named_ports" {
+      type              = "json"
+      generate_resolver = true
+    }
+
+    column "status" {
+      description = "Status of the instance. One of DEPROVISIONING, PROVISIONING, REPAIRING, RUNNING, STAGING, STOPPED, STOPPING, SUSPENDED, SUSPENDING, TERMINATED"
+    }
+  }
+
+}
+
+
 resource "gcp" "compute" "images" {
-  path = "google.golang.org/api/compute/v1.Image"
+  path        = "google.golang.org/api/compute/v1.Image"
   description = "Represents an Image resource  You can use images to create boot disks for your VM instances"
 
   multiplex "ProjectMultiplex" {
@@ -635,7 +701,7 @@ resource "gcp" "compute" "images" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -643,7 +709,7 @@ resource "gcp" "compute" "images" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
   column "name" {
@@ -664,7 +730,7 @@ resource "gcp" "compute" "images" {
   }
 
   column "guest_os_features" {
-    type = "stringarray"
+    type              = "stringarray"
     generate_resolver = true
   }
   column "shielded_instance_initial_state_dbxs" {
@@ -680,7 +746,7 @@ resource "gcp" "compute" "images" {
 }
 
 resource "gcp" "compute" "interconnects" {
-  path = "google.golang.org/api/compute/v1.Interconnect"
+  path        = "google.golang.org/api/compute/v1.Interconnect"
   description = "Represents an Interconnect resource  An Interconnect resource is a dedicated connection between the GCP network and your on-premises network"
 
   multiplex "ProjectMultiplex" {
@@ -688,7 +754,7 @@ resource "gcp" "compute" "interconnects" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -696,7 +762,7 @@ resource "gcp" "compute" "interconnects" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
   column "name" {
@@ -707,14 +773,14 @@ resource "gcp" "compute" "interconnects" {
 }
 
 resource "gcp" "compute" "networks" {
-  path = "google.golang.org/api/compute/v1.Network"
+  path        = "google.golang.org/api/compute/v1.Network"
   description = "Represents a VPC Network resource  Networks connect resources to each other and to the internet"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -722,7 +788,7 @@ resource "gcp" "compute" "networks" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
   column "name" {
@@ -731,14 +797,14 @@ resource "gcp" "compute" "networks" {
 }
 
 resource "gcp" "compute" "ssl_certificates" {
-  path = "google.golang.org/api/compute/v1.SslCertificate"
+  path        = "google.golang.org/api/compute/v1.SslCertificate"
   description = "Represents an SSL Certificate resource."
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -746,7 +812,7 @@ resource "gcp" "compute" "ssl_certificates" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
   column "name" {
@@ -755,7 +821,7 @@ resource "gcp" "compute" "ssl_certificates" {
 }
 
 resource "gcp" "compute" "subnetworks" {
-  path = "google.golang.org/api/compute/v1.Subnetwork"
+  path        = "google.golang.org/api/compute/v1.Subnetwork"
   description = "Represents a Subnetwork resource  A subnetwork (also known as a subnet) is a logical partition of a Virtual Private Cloud network with one primary IP range and zero or more secondary IP ranges"
 
   multiplex "ProjectMultiplex" {
@@ -763,7 +829,7 @@ resource "gcp" "compute" "subnetworks" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -771,7 +837,7 @@ resource "gcp" "compute" "subnetworks" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
   column "name" {
@@ -783,7 +849,7 @@ resource "gcp" "compute" "subnetworks" {
 }
 
 resource "gcp" "compute" "vpn_gateways" {
-  path = "google.golang.org/api/compute/v1.VpnGateway"
+  path        = "google.golang.org/api/compute/v1.VpnGateway"
   description = "Represents a HA VPN gateway  HA VPN is a high-availability (HA) Cloud VPN solution that lets you securely connect your on-premises network to your Google Cloud Virtual Private Cloud network through an IPsec VPN connection in a single region."
 
   multiplex "ProjectMultiplex" {
@@ -791,7 +857,7 @@ resource "gcp" "compute" "vpn_gateways" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -804,7 +870,7 @@ resource "gcp" "compute" "vpn_gateways" {
     description = "Labels for this resource"
   }
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
 
@@ -812,7 +878,7 @@ resource "gcp" "compute" "vpn_gateways" {
     path = "google.golang.org/api/compute/v1.VpnGatewayVpnGatewayInterface"
 
     column "id" {
-      type = "string"
+      type   = "string"
       rename = "resource_id"
     }
   }
@@ -820,7 +886,7 @@ resource "gcp" "compute" "vpn_gateways" {
 }
 
 resource "gcp" "compute" "forwarding_rules" {
-  path = "google.golang.org/api/compute/v1.ForwardingRule"
+  path        = "google.golang.org/api/compute/v1.ForwardingRule"
   description = "Represents a Forwarding Rule resource  Forwarding rule resources in GCP can be either regional or global."
 
   multiplex "ProjectMultiplex" {
@@ -828,7 +894,7 @@ resource "gcp" "compute" "forwarding_rules" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -870,7 +936,7 @@ resource "gcp" "compute" "forwarding_rules" {
     description = "Name of the resource"
   }
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
 }
@@ -883,7 +949,7 @@ resource "gcp" "compute" "firewalls" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -891,7 +957,7 @@ resource "gcp" "compute" "firewalls" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
 
@@ -900,17 +966,17 @@ resource "gcp" "compute" "firewalls" {
   }
 
   relation "gcp" "compute" "denied" {
-    path = "google.golang.org/api/compute/v1.FirewallDenied"
+    path              = "google.golang.org/api/compute/v1.FirewallDenied"
     disable_pluralize = true
   }
   relation "gcp" "compute" "allowed" {
-    path = "google.golang.org/api/compute/v1.FirewallAllowed"
+    path              = "google.golang.org/api/compute/v1.FirewallAllowed"
     disable_pluralize = true
   }
 }
 
 resource "gcp" "compute" "disk_types" {
-  path = "google.golang.org/api/compute/v1.DiskType"
+  path        = "google.golang.org/api/compute/v1.DiskType"
   description = "Represents a Disk Type resource."
 
   multiplex "ProjectMultiplex" {
@@ -918,7 +984,7 @@ resource "gcp" "compute" "disk_types" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -926,14 +992,14 @@ resource "gcp" "compute" "disk_types" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
 
 }
 
 resource "gcp" "compute" "disks" {
-  path = "google.golang.org/api/compute/v1.Disk"
+  path        = "google.golang.org/api/compute/v1.Disk"
   description = "Represents a Persistent Disk resource."
 
   multiplex "ProjectMultiplex" {
@@ -941,7 +1007,7 @@ resource "gcp" "compute" "disks" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -971,7 +1037,7 @@ resource "gcp" "compute" "disks" {
     skip = true
   }
   column "guest_os_features" {
-    type = "stringarray"
+    type              = "stringarray"
     generate_resolver = true
   }
 
@@ -979,7 +1045,7 @@ resource "gcp" "compute" "disks" {
 
 
 resource "gcp" "compute" "backend_services" {
-  path = "google.golang.org/api/compute/v1.BackendService"
+  path        = "google.golang.org/api/compute/v1.BackendService"
   description = "Represents a Backend Service resource  A backend service defines how Google Cloud load balancers distribute traffic The backend service configuration contains a set of values, such as the protocol used to connect to backends, various distribution and session settings, health checks, and timeouts These settings provide fine-grained control over how your load balancer behaves."
 
   multiplex "ProjectMultiplex" {
@@ -987,7 +1053,7 @@ resource "gcp" "compute" "backend_services" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1007,21 +1073,21 @@ resource "gcp" "compute" "backend_services" {
     description = "Specifies the default TTL for cached content served by this origin for responses that do not have an existing valid TTL"
   }
   column "cdn_negative_caching_policies" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
   column "cdn_policy_bypass_cache_on_request_headers" {
-    type = "stringarray"
+    type              = "stringarray"
     generate_resolver = true
   }
 
   column "cdn_policy_negative_caching_policy" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
 
@@ -1034,7 +1100,7 @@ resource "gcp" "compute" "backend_services" {
 }
 
 resource "gcp" "compute" "autoscalers" {
-  path = "google.golang.org/api/compute/v1.Autoscaler"
+  path        = "google.golang.org/api/compute/v1.Autoscaler"
   description = "Represents an Autoscaler resource."
 
   multiplex "ProjectMultiplex" {
@@ -1042,7 +1108,7 @@ resource "gcp" "compute" "autoscalers" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1054,12 +1120,12 @@ resource "gcp" "compute" "autoscalers" {
   }
 
   column "status_details" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "resource_id"
   }
   column "scale_in_control_max_scaled_in_replicas_calculated" {
@@ -1079,7 +1145,7 @@ resource "gcp" "compute" "autoscalers" {
 }
 
 resource "gcp" "compute" "addresses" {
-  path = "google.golang.org/api/compute/v1.Address"
+  path        = "google.golang.org/api/compute/v1.Address"
   description = "Addresses for GFE-based external HTTP(S) load balancers."
 
   multiplex "ProjectMultiplex" {
@@ -1087,7 +1153,7 @@ resource "gcp" "compute" "addresses" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1101,7 +1167,7 @@ resource "gcp" "compute" "addresses" {
   }
   column "id" {
     rename = "address_id"
-    type = "string"
+    type   = "string"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
@@ -1110,14 +1176,14 @@ resource "gcp" "compute" "addresses" {
 
 
 resource "gcp" "bigquery" "datasets" {
-  path = "google.golang.org/api/bigquery/v2.Dataset"
+  path        = "google.golang.org/api/bigquery/v2.Dataset"
   description = "dataset resources in the project"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1125,18 +1191,18 @@ resource "gcp" "bigquery" "datasets" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "dataset_id"
   }
 
   column "dataset_reference_dataset_id" {
     rename = "reference_dataset_id"
-    skip = true
+    skip   = true
   }
 
   column "dataset_reference_project_id" {
     rename = "reference_project_id"
-    skip = true
+    skip   = true
   }
 
   column "satisfies_p_z_s" {
@@ -1153,7 +1219,7 @@ resource "gcp" "bigquery" "dataset_accesses" {
 
   column "dataset_dataset_dataset_id" {
     rename = "dataset_id"
-    skip = true
+    skip   = true
   }
 
   userDefinedColumn "dataset_id" {
@@ -1165,28 +1231,28 @@ resource "gcp" "bigquery" "dataset_accesses" {
 
   column "dataset_dataset_project_id" {
     rename = "project_id"
-    skip = true
+    skip   = true
   }
 
   column "dataset_target_types" {
-    type = "stringarray"
-    rename = "target_types"
-    description = "Which resources in the dataset this entry applies to."
+    type              = "stringarray"
+    rename            = "target_types"
+    description       = "Which resources in the dataset this entry applies to."
     generate_resolver = true
   }
 }
 
 resource "gcp" "bigquery" "dataset_tables" {
-  path = "google.golang.org/api/bigquery/v2.Table"
+  path        = "google.golang.org/api/bigquery/v2.Table"
   description = "Model options used for the first training run These options are immutable for subsequent training runs Default values are used for any options not specified in the input query"
   limit_depth = 1
   column "schema" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
   userDefinedColumn "dataset_id" {
-    type = "uuid"
+    type        = "uuid"
     description = ""
     resolver "Resolver" {
       path = "github.com/cloudquery/cq-provider-sdk/provider/schema.ParentIdResolver"
@@ -1194,7 +1260,7 @@ resource "gcp" "bigquery" "dataset_tables" {
   }
 
   column "external_data_configuration_schema" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
@@ -1299,11 +1365,11 @@ resource "gcp" "bigquery" "dataset_tables" {
   }
 
   relation "gcp" "bigquery" "user_defined_functions" {
-    path = "google.golang.org/api/bigquery/v2.UserDefinedFunctionResource"
+    path        = "google.golang.org/api/bigquery/v2.UserDefinedFunctionResource"
     description = "This is used for defining User Defined Function (UDF) resources only when using legacy SQL"
   }
   relation "gcp" "bigquery" "training_runs" {
-    path = "google.golang.org/api/bigquery/v2.BqmlTrainingRun"
+    path        = "google.golang.org/api/bigquery/v2.BqmlTrainingRun"
     description = "Training options used by this training run These options are mutable for subsequent training runs"
   }
 
@@ -1312,7 +1378,7 @@ resource "gcp" "bigquery" "dataset_tables" {
 
 
 resource "gcp" "compute" "projects" {
-  path = "google.golang.org/api/compute/v1.Project"
+  path        = "google.golang.org/api/compute/v1.Project"
   description = "Represents a Project resource which is used to organize resources in a Google Cloud Platform environment"
 
   multiplex "ProjectMultiplex" {
@@ -1326,7 +1392,7 @@ resource "gcp" "compute" "projects" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1336,7 +1402,7 @@ resource "gcp" "compute" "projects" {
   column "creation_timestamp" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
@@ -1358,7 +1424,7 @@ resource "gcp" "compute" "projects" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "compute_project_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -1366,14 +1432,14 @@ resource "gcp" "compute" "projects" {
   }
 
   column "common_instance_metadata_items" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 }
 
 
 resource "gcp" "compute" "target_ssl_proxies" {
-  path = "google.golang.org/api/compute/v1.TargetSslProxy"
+  path        = "google.golang.org/api/compute/v1.TargetSslProxy"
   description = "Represents a Target SSL Proxy resource"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
@@ -1388,7 +1454,7 @@ resource "gcp" "compute" "target_ssl_proxies" {
 
   userDefinedColumn "project_id" {
     description = "GCP Project Id of the resource"
-    type = "string"
+    type        = "string"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
@@ -1396,7 +1462,7 @@ resource "gcp" "compute" "target_ssl_proxies" {
   column "creation_timestamp" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
@@ -1407,7 +1473,7 @@ resource "gcp" "compute" "target_ssl_proxies" {
     description = "An optional description of this resource"
   }
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "ssl_proxy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -1416,7 +1482,7 @@ resource "gcp" "compute" "target_ssl_proxies" {
 }
 
 resource "gcp" "compute" "target_https_proxies" {
-  path = "google.golang.org/api/compute/v1.TargetHttpsProxy"
+  path        = "google.golang.org/api/compute/v1.TargetHttpsProxy"
   description = "Represents a Target HTTPS Proxy resource"
 
   multiplex "ProjectMultiplex" {
@@ -1432,7 +1498,7 @@ resource "gcp" "compute" "target_https_proxies" {
 
   userDefinedColumn "project_id" {
     description = "GCP Project Id of the resource"
-    type = "string"
+    type        = "string"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
@@ -1446,7 +1512,7 @@ resource "gcp" "compute" "target_https_proxies" {
   column "creation_timestamp" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
@@ -1455,7 +1521,7 @@ resource "gcp" "compute" "target_https_proxies" {
     description = "Name of the resource"
   }
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "https_proxy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -1466,7 +1532,7 @@ resource "gcp" "compute" "target_https_proxies" {
 
 
 resource "gcp" "compute" "ssl_policies" {
-  path = "google.golang.org/api/compute/v1.SslPolicy"
+  path        = "google.golang.org/api/compute/v1.SslPolicy"
   description = "Represents an SSL Policy resource"
   multiplex "ProjectMultiplex" {
     path = "github.com/cloudquery/cq-provider-gcp/client.ProjectMultiplex"
@@ -1480,7 +1546,7 @@ resource "gcp" "compute" "ssl_policies" {
 
   userDefinedColumn "project_id" {
     description = "GCP Project Id of the resource"
-    type = "string"
+    type        = "string"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
     }
@@ -1497,7 +1563,7 @@ resource "gcp" "compute" "ssl_policies" {
   column "creation_timestamp" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
     generate_resolver = true
@@ -1507,7 +1573,7 @@ resource "gcp" "compute" "ssl_policies" {
     description = "Name of the resource"
   }
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "ssl_policy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -1518,7 +1584,7 @@ resource "gcp" "compute" "ssl_policies" {
     path = "google.golang.org/api/compute/v1.SslPolicyWarnings"
 
     column "data" {
-      type = "json"
+      type              = "json"
       generate_resolver = true
     }
   }
@@ -1539,7 +1605,7 @@ resource "gcp" "dns" "managed_zones" {
 
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1559,7 +1625,7 @@ resource "gcp" "dns" "managed_zones" {
     description = "The resource type"
   }
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "managed_zone_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -1583,7 +1649,7 @@ resource "gcp" "dns" "policies" {
 
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1595,7 +1661,7 @@ resource "gcp" "dns" "policies" {
   }
 
   column "id" {
-    type = "string"
+    type   = "string"
     rename = "policy_id"
     resolver "resolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
@@ -1638,7 +1704,7 @@ resource "gcp" "logging" "metrics" {
   }
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1682,7 +1748,7 @@ resource "gcp" "logging" "metrics" {
     skip = true
   }
   column "id" {
-    rename = "metric_id"
+    rename      = "metric_id"
     description = "Id of the logging metric"
   }
 }
@@ -1703,7 +1769,7 @@ resource "gcp" "monitoring" "alert_policies" {
 
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1722,7 +1788,7 @@ resource "gcp" "monitoring" "alert_policies" {
   }
 
   column "user_labels" {
-    rename = "labels"
+    rename      = "labels"
     description = "Labels for this resource"
   }
   column "mutation_record_mutated_by" {
@@ -1831,7 +1897,7 @@ resource "gcp" "logging" "sinks" {
 
 
   userDefinedColumn "project_id" {
-    type = "string"
+    type        = "string"
     description = "GCP Project Id of the resource"
     resolver "resolveResourceProject" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveProject"
@@ -1839,9 +1905,9 @@ resource "gcp" "logging" "sinks" {
   }
 
   column "id" {
-    rename = "sink_id"
+    rename      = "sink_id"
     description = "Id of the logging sink"
-    type = "string"
+    type        = "string"
     resolver "ResolveResourceId" {
       path = "github.com/cloudquery/cq-provider-gcp/client.ResolveResourceId"
     }
@@ -1865,7 +1931,7 @@ resource "gcp" "resource_manager" "projects" {
   column "create_time" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
@@ -1873,7 +1939,7 @@ resource "gcp" "resource_manager" "projects" {
   column "delete_time" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
@@ -1888,8 +1954,8 @@ resource "gcp" "resource_manager" "projects" {
     description = "The labels associated with this project"
   }
   userDefinedColumn "policy" {
-    type = "json"
-    description = "Access control policy for a resource"
+    type              = "json"
+    description       = "Access control policy for a resource"
     generate_resolver = true
   }
 }
@@ -1918,7 +1984,7 @@ resource "gcp" "resource_manager" "folders" {
   column "create_time" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
@@ -1926,7 +1992,7 @@ resource "gcp" "resource_manager" "folders" {
   column "delete_time" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
@@ -1934,20 +2000,20 @@ resource "gcp" "resource_manager" "folders" {
   column "update_time" {
     type = "timestamp"
     resolver "ISODateResolver" {
-      path = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
+      path          = "github.com/cloudquery/cq-provider-gcp/client.ISODateResolver"
       path_resolver = true
     }
   }
 
   userDefinedColumn "policy" {
-    type = "json"
-    description = "Access control policy for a resource"
+    type              = "json"
+    description       = "Access control policy for a resource"
     generate_resolver = true
   }
 }
 
 resource "gcp" "compute" "url_maps" {
-  path = "google.golang.org/api/compute/v1.UrlMap"
+  path        = "google.golang.org/api/compute/v1.UrlMap"
   description = "Represents a URL Map resource"
 
   multiplex "ProjectMultiplex" {
@@ -1970,7 +2036,8 @@ resource "gcp" "compute" "url_maps" {
   options {
     primary_keys = [
       "project_id",
-      "id"]
+      "id"
+    ]
   }
 
   column "default_route_action" {
@@ -1978,12 +2045,12 @@ resource "gcp" "compute" "url_maps" {
   }
 
   column "header_action_request_headers_to_add" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
   column "header_action_response_headers_to_add" {
-    type = "json"
+    type              = "json"
     generate_resolver = true
   }
 
@@ -1991,7 +2058,7 @@ resource "gcp" "compute" "url_maps" {
     path = "google.golang.org/api/compute/v1.WeightedBackendService"
 
     column "header_action" {
-      type = "json"
+      type              = "json"
       generate_resolver = true
     }
   }
@@ -2016,22 +2083,22 @@ resource "gcp" "compute" "url_maps" {
     path = "google.golang.org/api/compute/v1.PathMatcher"
 
     column "path_rules" {
-      type = "json"
+      type              = "json"
       generate_resolver = true
     }
 
     column "header_action" {
-      type = "json"
+      type              = "json"
       generate_resolver = true
     }
 
     column "default_route_action" {
-      type = "json"
+      type              = "json"
       generate_resolver = true
     }
 
     column "route_rules" {
-      type = "json"
+      type              = "json"
       generate_resolver = true
     }
   }
@@ -2040,7 +2107,7 @@ resource "gcp" "compute" "url_maps" {
     path = "google.golang.org/api/compute/v1.UrlMapTest"
 
     column "headers" {
-      type = "json"
+      type              = "json"
       generate_resolver = true
     }
   }
