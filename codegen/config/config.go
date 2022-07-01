@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudquery/cq-gen/code"
 	"github.com/creasty/defaults"
 	"github.com/zclconf/go-cty/cty"
+
+	"github.com/cloudquery/cq-gen/code"
 )
 
 type Config struct {
@@ -65,6 +66,8 @@ type ResourceConfig struct {
 	AllowUnexported bool `hcl:"allow_unexported,optional"`
 	// Table options in the config
 	TableOptions *TableOptionsConfig `hcl:"options,block"`
+	// IgnoreInTests specifies whether this column should be ignored during non-nil checks in integration tests
+	IgnoreInTests bool `hcl:"ignore_in_tests,optional"`
 
 	// Column configurations we want to modify
 	Columns []ColumnConfig `hcl:"column,block"`

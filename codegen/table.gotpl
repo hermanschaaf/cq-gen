@@ -41,6 +41,9 @@
     {{- if .Options }}
     Options: schema.TableCreationOptions{PrimaryKeys: []string{ {{ .Options.PrimaryKeys|joinQuotes}} }},
     {{- end }}
+    {{- if .IgnoreInTests }}
+    IgnoreInTests: {{ $.IgnoreInTests }},
+    {{- end }}
     Columns: []schema.Column{
     {{- template "BuildColumns" .Columns }}
     },

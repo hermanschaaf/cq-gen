@@ -6,8 +6,9 @@ import (
 
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/cloudquery/cq-gen/codegen/config"
 	"github.com/cloudquery/cq-provider-sdk/provider/schema"
+
+	"github.com/cloudquery/cq-gen/codegen/config"
 )
 
 type TableDefinition struct {
@@ -16,6 +17,7 @@ type TableDefinition struct {
 	TableFuncName string
 	TableName     string
 	Description   string
+	IgnoreInTests bool
 	Columns       []ColumnDefinition
 	Relations     []*TableDefinition
 	// schema.TableResolver definition
