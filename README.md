@@ -8,36 +8,36 @@
 CloudQuery Provider Generator
 =======================
 
-*CQ-Gen* allows creating provider resources fast by generating all the boring bits and allow you to focus on the logic!
+*CQ-Gen* allows for creating provider resources fast by generating all the boring bits, allowing you to focus on the logic!
 
-The main goal of cq-gen is to easily generate tables from an existing source including reading their descriptions and relations, 
-by defining our generation once in a configuration. *cq-gen* allows to quickly re-generate when new fields are added keeping our resolver functions logic from previous iterations.
+The main goal of cq-gen is to easily generate tables from an existing source, including reading their descriptions and relations, 
+by defining our generation once in a configuration. *cq-gen* allows you to quickly re-generate when new fields are added, keeping our resolver functions logic from previous iterations.
 
 ## Key features
 - We generate most of the boring table bits and all fields including descriptions, so you can focus on defining the resolver logic and add more resources faster!
-- Configurable, cq-gen allows you to define your own columns, relations and even transform existing columns
-- Read from one or more sources, openAPI? Golang? some other source? we got you covered we can support reading from any source as long as it supports the interface.
+- Configurable, *cq-gen* allows you to define your own columns, relations and even transform existing columns
+- Read from one or more sources. OpenAPI? Go? Some other source? We have you covered. We can support reading from any source as long as it supports the interface.
 
 Usage 
 =====
 
-### introduction
-To use cq-gen you first must add it as a tool to your provider module [see](https://marcofranssen.nl/manage-go-tools-via-go-modules) for how to set it up.
-After we set up our cq-gen tool we can start configuring our resources and create them.
+### Introduction
+To use cq-gen, you must first add it as a tool to your provider module ([See this link](https://marcofranssen.nl/manage-go-tools-via-go-modules) for a walk-through).
+After we set up our cq-gen tool, we can start configuring our resources and create them.
 
 ### Execution
-To execute cq-gen all you need to do is execute which has four main flags:
-  - **config**: where the hcl configuration file to generate exists
-  - **domain**: what domain we want to generate from.
-  - **resource**: what specific resource in given domain we want to generate.
-  - **output**: which directory to output resources go files.
+To execute *cq-gen* you need to specify four main flags:
+  - **config**: path to the hcl configuration file to generate code exists
+  - **domain**: what domain we want to generate from
+  - **resource**: what specific resource in given domain we want to generate
+  - **output**: which directory to output resources go files
 
 #### Example
 `./cq-gen --config=providers/cq-provider-aws.hcl --domain=ecs --resource=clusters`
 
 ## Configuration
 
-This section goes over the configuration options available in cq-gen and how to use them correctly.
+This section goes over the configuration options available in *cq-gen* and how to use them correctly.
 
 The cq-gen has a few high level concepts we will go over before deep diving into an example.
 
