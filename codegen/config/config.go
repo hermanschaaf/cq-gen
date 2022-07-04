@@ -66,7 +66,7 @@ type ResourceConfig struct {
 	AllowUnexported bool `hcl:"allow_unexported,optional"`
 	// Table options in the config
 	TableOptions *TableOptionsConfig `hcl:"options,block"`
-	// IgnoreInTests specifies whether this column should be ignored during non-nil checks in integration tests
+	// IgnoreInTests specifies whether the table should be ignored during non-nil checks in integration tests
 	IgnoreInTests bool `hcl:"ignore_in_tests,optional"`
 
 	// Column configurations we want to modify
