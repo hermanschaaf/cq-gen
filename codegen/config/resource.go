@@ -40,6 +40,9 @@ func decodeResourceBody(ctx *hcl.EvalContext, body hcl.Body, labels []string) (*
 	if attr, exists := content.Attributes["description_path_parts"]; exists {
 		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &resource.DescriptionPathParts)...)
 	}
+	if attr, exists := content.Attributes["ignore_in_tests"]; exists {
+		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &resource.IgnoreInTests)...)
+	}
 	for _, b := range content.Blocks {
 		switch b.Type {
 		case "column":
@@ -147,6 +150,9 @@ func decodeRelationBlock(ctx *hcl.EvalContext, block *hcl.Block) (*RelationConfi
 	if attr, exists := content.Attributes["rename"]; exists {
 		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &rel.Rename)...)
 	}
+	if attr, exists := content.Attributes["ignore_in_tests"]; exists {
+		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &resource.IgnoreInTests)...)
+	}
 	return rel, diags
 }
 
@@ -246,6 +252,10 @@ var (
 			},
 			{
 				Name:     "disable_pluralize",
+				Required: false,
+			},
+			{
+				Name:     "ignore_in_tests",
 				Required: false,
 			},
 			{

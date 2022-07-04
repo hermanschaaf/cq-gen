@@ -10,16 +10,17 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/cloudquery/cq-provider-sdk/provider/schema"
+	"github.com/hashicorp/go-hclog"
+	"github.com/iancoleman/strcase"
+	"github.com/jinzhu/inflection"
+
 	"github.com/cloudquery/cq-gen/code"
 	"github.com/cloudquery/cq-gen/codegen/config"
 	"github.com/cloudquery/cq-gen/codegen/source"
 	"github.com/cloudquery/cq-gen/codegen/template"
 	"github.com/cloudquery/cq-gen/naming"
 	"github.com/cloudquery/cq-gen/rewrite"
-	"github.com/cloudquery/cq-provider-sdk/provider/schema"
-	"github.com/hashicorp/go-hclog"
-	"github.com/iancoleman/strcase"
-	"github.com/jinzhu/inflection"
 )
 
 const (
@@ -102,6 +103,7 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 		parentTable:   parentTable,
 		Options:       resourceCfg.TableOptions,
 		Description:   resourceCfg.Description,
+		IgnoreInTests: resourceCfg.IgnoreInTests,
 		path:          resourceCfg.Path,
 	}
 	// will only mark table function as copied
@@ -138,6 +140,7 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 		}
 
 	}
+
 	if err := tb.buildColumns(table, obj, resourceCfg, meta); err != nil {
 		return nil, err
 	}

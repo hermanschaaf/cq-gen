@@ -8,8 +8,9 @@ import (
 
 func Rename() *schema.Table {
 	return &schema.Table{
-		Name:     "test_relations_rename",
-		Resolver: fetchRelationsRename,
+		Name:          "test_relations_rename",
+		Resolver:      fetchRelationsRename,
+		IgnoreInTests: true,
 		Columns: []schema.Column{
 			{
 				Name: "column",
@@ -18,8 +19,9 @@ func Rename() *schema.Table {
 		},
 		Relations: []*schema.Table{
 			{
-				Name:     "test_base_renamed",
-				Resolver: fetchBaseRenamed,
+				Name:          "test_base_renamed",
+				Resolver:      fetchBaseRenamed,
+				IgnoreInTests: true,
 				Columns: []schema.Column{
 					{
 						Name:        "rename_cq_id",
