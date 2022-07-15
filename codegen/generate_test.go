@@ -2,9 +2,10 @@ package codegen
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"io/ioutil"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/stretchr/testify/assert"
 )
