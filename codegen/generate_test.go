@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"github.com/google/go-cmp/cmp"
 	"io/ioutil"
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-var re = regexp.MustCompile(`\r?\n`)
 
 func Test_Generate(t *testing.T) {
 	type test struct {
