@@ -3,14 +3,12 @@ package codegen
 import (
 	"fmt"
 	"io/ioutil"
-	"regexp"
-	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/stretchr/testify/assert"
 )
-
-var re = regexp.MustCompile(`\r?\n`)
 
 func Test_Generate(t *testing.T) {
 	type test struct {
@@ -66,9 +64,9 @@ func Test_Generate(t *testing.T) {
 			expected, err := ioutil.ReadFile(expectedFilename)
 
 			assert.NoError(t, err, "expected output file missing", expectedFilename)
-			assert.Equal(t,
-				strings.ReplaceAll(re.ReplaceAllString(string(expected), " "), " ", ""),
-				strings.ReplaceAll(re.ReplaceAllString(string(result), " "), " ", ""))
+			if diff := cmp.Diff(expected, result); diff != "" {
+				t.Error(diff)
+			}
 		})
 	}
 }
