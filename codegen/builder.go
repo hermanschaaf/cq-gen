@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/thoas/go-funk"
+
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
@@ -232,6 +234,11 @@ func (tb TableBuilder) buildColumn(table *TableDefinition, field source.Object, 
 	// configuration.
 	if !resourceCfg.DisableReadDescriptions {
 		colDef.Description = tb.getDescription(field, cfg.Description, meta)
+	}
+
+	if funk.ContainsString(resourceCfg.IgnoreColumnsInTest, colDef.Name) {
+		tb.log.Debug("adding ignore in tests to column", "table", table.TableName, "column", colDef.Name, "object", field.Name())
+		colDef.IgnoreInTests = true
 	}
 
 	// Set Resolver
