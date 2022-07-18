@@ -9,6 +9,11 @@ import (
 	"github.com/modern-go/reflect2"
 )
 
+type Accessor struct {
+	IsPointer bool
+	Name      string
+}
+
 func IsNil(i interface{}) bool {
 	return reflect2.IsNil(i)
 }
@@ -19,6 +24,14 @@ func JoinQuotes(ss []string) string {
 		ns[i] = strconv.Quote(s)
 	}
 	return strings.Join(ns, ",")
+}
+
+func JoinAccessors(accs []Accessor) string {
+	aa := make([]string, len(accs))
+	for i, a := range accs {
+		aa[i] = a.Name
+	}
+	return strings.Join(aa, ".")
 }
 
 func UcFirst(s string) string {

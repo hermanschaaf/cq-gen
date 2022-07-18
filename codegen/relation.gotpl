@@ -1,0 +1,10 @@
+{{- define "BuildNilChecks" -}}
+    {{- range $i, $a := .ChildAccessor -}}{{if $a.IsPointer}} || r.{{- range $u, $b := $.ChildAccessor -}}{{if le $u $i}}{{if $u}}.{{end}}{{$b.Name}}{{end}}{{end}} == nil{{end}}{{end}}
+{{- end -}}
+
+r := parent.Item.({{$.ParentType}})
+if r == nil {{ template "BuildNilChecks" $ }} {
+    return nil
+}
+res <- r.{{ $.ChildAccessor|joinDots}}
+return nil

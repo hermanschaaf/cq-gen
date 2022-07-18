@@ -1,6 +1,8 @@
 package codegen
 
 import (
+	_ "embed"
+
 	"fmt"
 	"go/types"
 	"os"
@@ -15,6 +17,8 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/jinzhu/inflection"
 
+	textTemplate "text/template"
+
 	"github.com/cloudquery/cq-gen/code"
 	"github.com/cloudquery/cq-gen/codegen/config"
 	"github.com/cloudquery/cq-gen/codegen/source"
@@ -28,6 +32,9 @@ const (
 	sdkPath               = "github.com/cloudquery/cq-provider-sdk"
 	MaxColumnLength       = 63
 )
+
+//go:embed relation.gotpl
+var resolverTemplate string
 
 // BuildMeta is information passed when the TableBuilder is traversing over a source.Object to build it's table
 type BuildMeta struct {
@@ -157,12 +164,43 @@ func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *con
 	if resource.Resolver != nil {
 		table.Resolver, err = tb.buildResolverDefinition(table, resource.Resolver)
 	} else {
-		table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
-			Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
-			Body:     defaultImplementation,
-			Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
-			Generate: true, // Table functions are always generated, setting this to true will cause duplicates
-		})
+		if table.parentTable == nil {
+			table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
+				Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
+				Body:     defaultImplementation,
+				Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
+				Generate: true, // Table functions are always generated, setting this to true will cause duplicates
+			})
+		} else {
+			t := textTemplate.New("").Funcs(map[string]interface{}{
+				"joinDots": template.JoinAccessors,
+			})
+			tmpl, tmplErr := t.Parse(resolverTemplate)
+			if tmplErr != nil {
+				panic(tmplErr)
+			}
+			b := new(strings.Builder)
+			data := struct {
+				ParentType    string
+				ChildAccessor []template.Accessor
+			}{
+				ParentType: "*run.Service",
+				ChildAccessor: []template.Accessor{
+					{IsPointer: true, Name: "Metadata"},
+					{IsPointer: true, Name: "OwnerReferences"},
+				},
+			}
+			execErr := tmpl.Execute(b, data)
+			if execErr != nil {
+				panic(execErr)
+			}
+			table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
+				Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
+				Body:     b.String(),
+				Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
+				Generate: true, // Table functions are always generated, setting this to true will cause duplicates
+			})
+		}
 	}
 	if err != nil {
 		return err
