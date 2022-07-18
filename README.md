@@ -42,10 +42,20 @@ This section goes over the configuration options available in *cq-gen* and how t
 The cq-gen has a few high level concepts we will go over before deep diving into an example.
 
 
-### Global Flags
+### Global Options
  - `service`: the name of service, this is usually the top level provider
  - `add_generate`: defines if to add a `go:generate` one liner on top of the generated resource
  - `output_directory`: output directory where to generate the resources files
+ - `description_modifier`: config block(s) to modify descriptions. It has two options: `regex` removes all patterns that match, while `words` removes all exact string matches. Examples:
+   ```
+   description_modifier "remove_read_only" {
+     words = ["[Read Only] "]
+   }
+   
+   description_modifier "remove_text_up_to_leading_colon" {
+     regex = "^.+: "
+   }
+   ```
 
 ### Resource
 Resources are the most top level definition, they are defined by service/domain/name label.
@@ -105,10 +115,10 @@ resource "aws" "redshift" "subnet_groups" {
 
 #### Important Fields:
 The resource config allows us to control how a resource is generated in cq-gen, these are the following attributes you can set:
-* **path**:  the path defines for [data-source]() where to search for the structure either in the go package or openapi spec for example.
-* **allow_unexported**: if the structure we are generating from has any private members this tells cq-gen to add them as-well, by default cq-gen skips private columns.
-* **options**: the table options allow to define the [options](https://docs.cloudquery.io/docs/developers/sdk/table/primary-key) field in `schema.Table`.
-* **limit_depth**: limits the depth cq-gen enters the structs, this is to avoid recursive structs.
+* **path**: the path defines for data-source where to search for the structure (either in the Go package or OpenAPI spec, for example).
+* **allow_unexported**: if the structure we are generating from has any private members this tells cq-gen to add them as well. By default, cq-gen skips private columns.
+* **options**: the table options allow you to define the [options](https://docs.cloudquery.io/docs/developers/sdk/table/primary-key) field in `schema.Table`.
+* **limit_depth**: limits the depth cq-gen enters the structs. This is to avoid recursive structs.
 * **disable_auto_descriptions**: Disables reading the struct for description comments for each column.
 * **disable_pluralize**: Disable pluralize of the name of the resource.
 
@@ -203,7 +213,6 @@ Resolvers used in many places in the cq-gen configuration:
 - Resources define multiple functions (Multiplexer, IgnoreError, RowResolver, DeleteFilter)
 
 **Note**: the resolver functions expect a certain signature, giving a bad function path will result in an error.
-
 
 ## Examples
 
