@@ -557,8 +557,8 @@ func (tb TableBuilder) getDescription(obj source.Object, description string, met
 	}
 	// if alternative description source is defined
 	if tb.descriptionSource != nil {
-		parts := append(meta.FieldParts, obj.Name()) //nolint
-		d, err := tb.descriptionSource.FindDescription(parts...)
+		parts := append(meta.FieldParts, obj.Name())             //nolint
+		d, err := tb.descriptionSource.FindDescription(parts...) //nolint
 		if err != nil {
 			return ""
 		}
