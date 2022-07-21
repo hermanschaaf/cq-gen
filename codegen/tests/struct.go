@@ -46,3 +46,15 @@ type SimpleRelation struct {
 type OtherStruct struct {
 	OtherField int
 }
+
+type PointerRelationStruct struct {
+	Inner *PointerInner
+}
+
+type PointerInner struct {
+	Relations []*PointerRelation
+}
+
+type PointerRelation struct {
+	SomeBases []*BaseStruct
+}

@@ -36,16 +36,31 @@ const (
 //go:embed relation.gotpl
 var resolverTemplate string
 
-// BuildMeta is information passed when the TableBuilder is traversing over a source.Object to build it's table
+type FieldPart struct {
+	Name      string
+	IsPointer bool
+}
+
+func NewFieldPart(name string, isPointer bool) FieldPart {
+	return FieldPart{
+		Name:      name,
+		IsPointer: isPointer,
+	}
+}
+
+// BuildMeta is information passed when the TableBuilder is traversing over a source.Object to build its table
 type BuildMeta struct {
 	// Depth represents the logical depth traversal in the build, the depth is used to avoid infinite recursion
 	Depth int
 	// ColumnPath is the logical traversal on the column, the path extends if it hits embedded objects.
 	ColumnPath string
-	// FieldPath is the dot notated path of the resource this expected, this is used for PathResolvers
+	// FieldPath is the dot notated path of the resource that is expected, this is used for PathResolvers
 	FieldPath string
 	// FieldParts is a list of fields we traversed
-	FieldParts []string
+	FieldParts []FieldPart
+	// BaseFieldIndex stores the index of the last base relation. It is used in conjunction with
+	// FieldParts to create the list of accessors when generating resolvers.
+	BaseFieldIndex int
 	// fullColumnPath saves full path of column regardless of prefix skips, this allows users to define
 	// either only column name or full embedded path
 	fullColumnPath string
@@ -54,9 +69,10 @@ type BuildMeta struct {
 func BuildColumnMeta(field source.Object, parentMeta BuildMeta, cfg config.ColumnConfig) BuildMeta {
 	meta := BuildMeta{
 		Depth:          0,
+		BaseFieldIndex: 0,
 		ColumnPath:     field.Name(),
 		FieldPath:      field.Name(),
-		FieldParts:     make([]string, len(parentMeta.FieldParts)),
+		FieldParts:     make([]FieldPart, len(parentMeta.FieldParts)),
 		fullColumnPath: fmt.Sprintf("%s%s", parentMeta.fullColumnPath, field.Name()),
 	}
 	if cfg.Rename != "" {
@@ -112,11 +128,13 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 		Description:   resourceCfg.Description,
 		IgnoreInTests: resourceCfg.IgnoreInTests,
 		path:          resourceCfg.Path,
+		ExtraImports:  make([]template.Import, 0),
 	}
+
 	// will only mark table function as copied
 	tb.rewriter.GetFunctionBody(table.TableFuncName, "")
 	tb.log.Debug("Building table", "table", table.TableName)
-	if err := tb.buildTableFunctions(table, resourceCfg); err != nil {
+	if err := tb.buildTableFunctions(table, resourceCfg, meta); err != nil {
 		return nil, err
 	}
 
@@ -132,20 +150,26 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 		return nil, err
 	}
 
+	// base field becomes this table
+	meta.BaseFieldIndex = len(meta.FieldParts) - 1
+
 	if !resourceCfg.DisableReadDescriptions {
 		if table.Description == "" {
-			meta.FieldParts = append(meta.FieldParts, resourceCfg.DescriptionPathParts...)
+			for _, dp := range resourceCfg.DescriptionPathParts {
+				meta.FieldParts = append(meta.FieldParts, FieldPart{Name: dp, IsPointer: false})
+			}
 			table.Description = tb.getDescription(obj, resourceCfg.Description, meta)
 		}
 	}
 
 	if len(meta.FieldParts) == 0 {
 		if resourceCfg.DescriptionPathParts != nil {
-			meta.FieldParts = append(meta.FieldParts, resourceCfg.DescriptionPathParts...)
+			for _, dp := range resourceCfg.DescriptionPathParts {
+				meta.FieldParts = append(meta.FieldParts, FieldPart{Name: dp, IsPointer: false})
+			}
 		} else {
-			meta.FieldParts = append(meta.FieldParts, obj.Name())
+			meta.FieldParts = append(meta.FieldParts, FieldPart{Name: obj.Name(), IsPointer: obj.IsPointer()})
 		}
-
 	}
 
 	if err := tb.buildColumns(table, obj, resourceCfg, meta); err != nil {
@@ -159,48 +183,19 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 	return table, nil
 }
 
-func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *config.ResourceConfig) error {
+func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *config.ResourceConfig, meta BuildMeta) error {
 	var err error
 	if resource.Resolver != nil {
 		table.Resolver, err = tb.buildResolverDefinition(table, resource.Resolver)
+	} else if table.parentTable != nil {
+		table.Resolver, err = tb.buildRelationResolverDefinition(table, resource, meta)
 	} else {
-		if table.parentTable == nil {
-			table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
-				Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
-				Body:     defaultImplementation,
-				Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
-				Generate: true, // Table functions are always generated, setting this to true will cause duplicates
-			})
-		} else {
-			t := textTemplate.New("").Funcs(map[string]interface{}{
-				"joinDots": template.JoinAccessors,
-			})
-			tmpl, tmplErr := t.Parse(resolverTemplate)
-			if tmplErr != nil {
-				panic(tmplErr)
-			}
-			b := new(strings.Builder)
-			data := struct {
-				ParentType    string
-				ChildAccessor []template.Accessor
-			}{
-				ParentType: "*run.Service",
-				ChildAccessor: []template.Accessor{
-					{IsPointer: true, Name: "Metadata"},
-					{IsPointer: true, Name: "OwnerReferences"},
-				},
-			}
-			execErr := tmpl.Execute(b, data)
-			if execErr != nil {
-				panic(execErr)
-			}
-			table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
-				Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
-				Body:     b.String(),
-				Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
-				Generate: true, // Table functions are always generated, setting this to true will cause duplicates
-			})
-		}
+		table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
+			Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
+			Body:     defaultImplementation,
+			Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
+			Generate: true, // Table functions are always generated, setting this to true will cause duplicates
+		})
 	}
 	if err != nil {
 		return err
@@ -233,6 +228,52 @@ func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *con
 	}
 
 	return nil
+}
+
+// buildRelationResolverDefinition attempts to generate a complete resolver function with body for relations. This body
+// should always compile, but it might need to be tweaked if, for example, additional API calls are required to populate
+// all fields.
+func (tb TableBuilder) buildRelationResolverDefinition(table *TableDefinition, resource *config.ResourceConfig, meta BuildMeta) (*ResolverDefinition, error) {
+	t := textTemplate.New("").Funcs(map[string]interface{}{
+		"joinDots": template.JoinAccessors,
+	})
+	tmpl, tmplErr := t.Parse(resolverTemplate)
+	if tmplErr != nil {
+		panic(tmplErr)
+	}
+	b := new(strings.Builder)
+	hasPointers := false
+	accessors := make([]template.Accessor, 0)
+	for i := meta.BaseFieldIndex + 1; i < len(meta.FieldParts); i++ {
+		isPointer := true // TODO: set this
+		hasPointers = hasPointers || isPointer
+		accessors = append(accessors, template.Accessor{IsPointer: meta.FieldParts[i].IsPointer, Name: meta.FieldParts[i].Name})
+	}
+	pkg, tp := code.PkgAndType(table.parentTable.path)
+	pkgName := code.PkgName(pkg)
+	table.ExtraImports = append(table.ExtraImports, template.Import{
+		Path: pkg,
+	})
+	data := struct {
+		ParentType    string
+		ChildAccessor []template.Accessor
+		HasPointers   bool
+	}{
+		ParentType:    pkgName + "." + tp,
+		ChildAccessor: accessors,
+		HasPointers:   hasPointers,
+	}
+
+	execErr := tmpl.Execute(b, data)
+	if execErr != nil {
+		panic(execErr)
+	}
+	return tb.buildResolverDefinition(table, &config.FunctionConfig{
+		Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
+		Body:     b.String(),
+		Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
+		Generate: true, // Table functions are always generated, setting this to true will cause duplicates
+	})
 }
 
 // buildColumns iterates over every field in source.Object adding a ColumnDefinition or RelationDefinition based on the type
@@ -315,13 +356,13 @@ func (tb TableBuilder) buildColumn(table *TableDefinition, field source.Object, 
 
 		// increase build depth
 		meta.Depth += 1
-		meta.FieldParts = append(meta.FieldParts, field.Name())
+		meta.FieldParts = append(meta.FieldParts, NewFieldPart(field.Name(), field.IsPointer()))
 		if err := tb.buildTableRelation(table, relationCfg, meta); err != nil {
 			return err
 		}
 	case source.TypeEmbedded:
 		tb.log.Debug("Building embedded column", "table", table.TableName, "column", field.Name())
-		meta.FieldParts = append(meta.FieldParts, field.Name())
+		meta.FieldParts = append(meta.FieldParts, NewFieldPart(field.Name(), field.IsPointer()))
 		if err := tb.buildColumns(table, field, resourceCfg, BuildColumnMeta(field, meta, cfg)); err != nil {
 			return err
 		}
@@ -556,7 +597,8 @@ func (tb TableBuilder) buildTableRelation(parentTable *TableDefinition, cfg *con
 		descriptionParsers: tb.descriptionParsers,
 	}
 
-	rel, err := innerBuilder.BuildTable(parentTable, &cfg.ResourceConfig, BuildMeta{Depth: meta.Depth, ColumnPath: "", FieldPath: "", FieldParts: meta.FieldParts})
+	newMeta := BuildMeta{Depth: meta.Depth, BaseFieldIndex: meta.BaseFieldIndex, ColumnPath: "", FieldPath: "", FieldParts: meta.FieldParts}
+	rel, err := innerBuilder.BuildTable(parentTable, &cfg.ResourceConfig, newMeta)
 	if err != nil {
 		return err
 	}
@@ -588,7 +630,11 @@ func (tb TableBuilder) getDescription(obj source.Object, description string, met
 	}
 	// if alternative description source is defined
 	if tb.descriptionSource != nil {
-		parts := append(meta.FieldParts, obj.Name()) //nolint
+		parts := make([]string, 0, len(meta.FieldParts)+1)
+		for i := range meta.FieldParts {
+			parts[i] = meta.FieldParts[i].Name
+		}
+		parts = append(parts, obj.Name())
 		d, err := tb.descriptionSource.FindDescription(parts...)
 		if err != nil {
 			return ""

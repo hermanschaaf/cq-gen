@@ -12,3 +12,7 @@ resource "test" "base" "complex" {
 resource "test" "base" "relations" {
   path = "github.com/cloudquery/cq-gen/codegen/tests.RelationStruct"
 }
+
+resource "test" "base" "pointer_relations" {
+  path = "github.com/cloudquery/cq-gen/codegen/tests.PointerRelationStruct"
+}

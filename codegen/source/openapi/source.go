@@ -67,6 +67,10 @@ func (o Object) Path() string {
 	return o.name
 }
 
+func (o Object) IsPointer() bool {
+	return false
+}
+
 func getValueType(s *openapi3.Schema) schema.ValueType {
 	switch s.Type {
 	case "":

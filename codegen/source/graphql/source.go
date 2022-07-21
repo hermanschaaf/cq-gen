@@ -77,6 +77,10 @@ func (o Object) Exported() bool {
 	return true
 }
 
+func (o Object) IsPointer() bool {
+	return false
+}
+
 func GetType(a *ast.Type) *ast.Type {
 	if a.Elem != nil {
 		return GetType(a.Elem)

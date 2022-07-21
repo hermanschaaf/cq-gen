@@ -3,9 +3,9 @@ package base
 import (
 	"context"
 
-	"github.com/cloudquery/cq-provider-sdk/provider/schema"
-
 	"github.com/cloudquery/cq-gen/codegen/tests"
+	"github.com/cloudquery/cq-provider-sdk/helpers"
+	"github.com/cloudquery/cq-provider-sdk/provider/schema"
 )
 
 func Relations() *schema.Table {
@@ -137,18 +137,14 @@ func fetchBaseRelations(ctx context.Context, meta schema.ClientMeta, parent *sch
 	panic("not implemented")
 }
 func fetchBaseRelationSomeBases(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	r := parent.Item.(*tests.RelationStruct)
-	if r == nil {
-		return nil
-	}
-	res <- r.SomeBases
+	// This is a generated base implementation. You may edit it if necessary.
+	p := helpers.ToPointer(parent.Item).(*tests.RelationStruct)
+	res <- p.SomeBases
 	return nil
 }
 func fetchBaseRelationInnerSomeBases(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	r := parent.Item.(*tests.RelationStruct)
-	if r == nil {
-		return nil
-	}
-	res <- r.Inner.SomeBases
+	// This is a generated base implementation. You may edit it if necessary.
+	p := helpers.ToPointer(parent.Item).(*tests.RelationStruct)
+	res <- p.Inner.SomeBases
 	return nil
 }

@@ -19,6 +19,7 @@ type ResourceDefinition struct {
 	Table           *TableDefinition
 	RemainingSource string
 	GenerateHeader  string
+	Imports         string
 }
 
 func buildResources(cfg *config.Config, domain string, resourceName string) ([]*ResourceDefinition, error) {

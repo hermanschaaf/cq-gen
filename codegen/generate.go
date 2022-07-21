@@ -51,6 +51,7 @@ func Generate(configPath, domain, resourceName, outputDir string) error {
 			Funcs: map[string]interface{}{
 				"call": Call,
 			},
+			Imports: resource.Table.ExtraImports,
 		})
 		if err != nil {
 			return err
