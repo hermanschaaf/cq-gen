@@ -18,15 +18,15 @@ func Complexes() *schema.Table {
 			},
 			{
 				Name: "int8_value",
-				Type: schema.TypeSmallInt,
+				Type: schema.TypeBigInt,
 			},
 			{
 				Name: "int16_value",
-				Type: schema.TypeSmallInt,
+				Type: schema.TypeBigInt,
 			},
 			{
 				Name: "int32_value",
-				Type: schema.TypeInt,
+				Type: schema.TypeBigInt,
 			},
 			{
 				Name: "int64_value",
