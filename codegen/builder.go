@@ -9,6 +9,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/thoas/go-funk"
+
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
@@ -151,7 +153,12 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 	}
 
 	// base field becomes this table
-	meta.BaseFieldIndex = len(meta.FieldParts) - 1
+
+	if len(meta.FieldParts) == 0 {
+		meta.BaseFieldIndex = 0
+	} else {
+		meta.BaseFieldIndex = len(meta.FieldParts) - 1
+	}
 
 	if !resourceCfg.DisableReadDescriptions {
 		if table.Description == "" {
@@ -185,9 +192,11 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 
 func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *config.ResourceConfig, meta BuildMeta) error {
 	var err error
-	if resource.Resolver != nil {
+	hasResolver := resource.Resolver != nil
+	canGenerateResolverImplementation := table.parentTable != nil && len(meta.FieldParts) > 0
+	if hasResolver {
 		table.Resolver, err = tb.buildResolverDefinition(table, resource.Resolver)
-	} else if table.parentTable != nil {
+	} else if canGenerateResolverImplementation {
 		table.Resolver, err = tb.buildRelationResolverDefinition(table, resource, meta)
 	} else {
 		table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
@@ -245,9 +254,9 @@ func (tb TableBuilder) buildRelationResolverDefinition(table *TableDefinition, r
 	hasPointers := false
 	accessors := make([]template.Accessor, 0)
 	for i := meta.BaseFieldIndex + 1; i < len(meta.FieldParts); i++ {
-		isPointer := true // TODO: set this
-		hasPointers = hasPointers || isPointer
-		accessors = append(accessors, template.Accessor{IsPointer: meta.FieldParts[i].IsPointer, Name: meta.FieldParts[i].Name})
+		fp := meta.FieldParts[i]
+		hasPointers = hasPointers || fp.IsPointer
+		accessors = append(accessors, template.Accessor{IsPointer: fp.IsPointer, Name: fp.Name})
 	}
 	pkg, tp := code.PkgAndType(table.parentTable.path)
 	pkgName := code.PkgName(pkg)
@@ -311,6 +320,11 @@ func (tb TableBuilder) buildColumn(table *TableDefinition, field source.Object, 
 	// configuration.
 	if !resourceCfg.DisableReadDescriptions {
 		colDef.Description = tb.getDescription(field, cfg.Description, meta)
+	}
+
+	if funk.ContainsString(resourceCfg.IgnoreColumnsInTest, colDef.Name) {
+		tb.log.Debug("adding ignore in tests to column", "table", table.TableName, "column", colDef.Name, "object", field.Name())
+		colDef.IgnoreInTests = true
 	}
 
 	// Set Resolver
@@ -629,12 +643,12 @@ func (tb TableBuilder) getDescription(obj source.Object, description string, met
 		return tb.parseDescription(description)
 	}
 	// if alternative description source is defined
-	if tb.descriptionSource != nil {
+	if tb.descriptionSource != nil { //nolint
 		parts := make([]string, 0, len(meta.FieldParts)+1)
 		for i := range meta.FieldParts {
 			parts[i] = meta.FieldParts[i].Name
 		}
-		parts = append(parts, obj.Name())
+		parts = append(parts, obj.Name()) //nolint
 		d, err := tb.descriptionSource.FindDescription(parts...)
 		if err != nil {
 			return ""

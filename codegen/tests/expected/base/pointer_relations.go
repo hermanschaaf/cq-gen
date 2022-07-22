@@ -67,7 +67,7 @@ func fetchBasePointerRelations(ctx context.Context, meta schema.ClientMeta, pare
 func fetchBasePointerRelationInnerRelations(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	// This is a generated base implementation. You may edit it if necessary.
 	p := helpers.ToPointer(parent.Item).(*tests.PointerRelationStruct)
-	if p.Inner == nil || p.Inner.Relations == nil {
+	if p.Inner == nil {
 		return nil
 	}
 	res <- p.Inner.Relations
@@ -76,9 +76,6 @@ func fetchBasePointerRelationInnerRelations(ctx context.Context, meta schema.Cli
 func fetchBasePointerRelationInnerRelationSomeBases(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	// This is a generated base implementation. You may edit it if necessary.
 	p := helpers.ToPointer(parent.Item).(*tests.PointerRelation)
-	if p.SomeBases == nil {
-		return nil
-	}
 	res <- p.SomeBases
 	return nil
 }

@@ -18,11 +18,6 @@ func TestMain(m *testing.M) {
 	}
 
 	code := m.Run()
-	//
-	//err = os.RemoveAll("./tests/output")
-	//if err != nil {
-	//	panic("failed to remove output directory after tests:" + err.Error())
-	//}
 
 	os.Exit(code)
 }

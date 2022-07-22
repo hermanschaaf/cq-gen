@@ -89,10 +89,11 @@ func (t TableDefinition) RelationExists(cfg config.RelationConfig) bool {
 }
 
 type ColumnDefinition struct {
-	Name        string
-	Type        schema.ValueType
-	Description string
-	Resolver    *ResolverDefinition
+	Name          string
+	Type          schema.ValueType
+	Description   string
+	Resolver      *ResolverDefinition
+	IgnoreInTests bool
 }
 
 type ResolverDefinition struct {
