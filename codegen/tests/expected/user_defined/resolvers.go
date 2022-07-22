@@ -21,7 +21,7 @@ func Resolvers() *schema.Table {
 			{
 				Name:        "test_column_path_resolver",
 				Description: "user defined column path resolver test",
-				Type:        schema.TypeInt,
+				Type:        schema.TypeBigInt,
 				Resolver:    tests.PathTestResolver("TestColumnPathResolver"),
 			},
 			{
