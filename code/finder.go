@@ -3,6 +3,7 @@ package code
 import (
 	"fmt"
 	"go/types"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -79,6 +80,14 @@ func (f Finder) FindObject(pkgName string, typeName string) (types.Object, error
 	pkg := f.pkgs.LoadWithTypes(pkgName)
 	if pkg == nil {
 		return nil, errors.Errorf("required package was not loaded: %s", fullName)
+	}
+
+	if len(pkg.Errors) > 0 {
+		msgs := make([]string, len(pkg.Errors))
+		for i := range pkg.Errors {
+			msgs[i] = pkg.Errors[i].Msg
+		}
+		return nil, errors.Errorf("failed to load package %s: %v", fullName, strings.Join(msgs, ","))
 	}
 
 	// then look for types directly
