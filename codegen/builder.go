@@ -322,7 +322,7 @@ func (tb TableBuilder) addUserDefinedColumns(table *TableDefinition, resource *c
 		// if we were requested to generate a resolver we create the resolver with the implementation
 		if uc.GenerateResolver {
 			columnResolver, err := tb.buildResolverDefinition(table, &config.FunctionConfig{
-				Name:     template.ToGo(fmt.Sprintf("resolve%s%s%s", titler.String(resource.Domain), titler.String(inflection.Singular(table.Name)), strcase.ToCamel(uc.Name))),
+				Name:     template.ToGoPrivate(fmt.Sprintf("resolve%s%s%s", titler.String(resource.Domain), titler.String(inflection.Singular(table.Name)), strcase.ToCamel(uc.Name))),
 				Body:     defaultImplementation,
 				Path:     path.Join(sdkPath, "provider/schema.ColumnResolver"),
 				Generate: true,
@@ -342,7 +342,7 @@ func (tb TableBuilder) addUserDefinedColumns(table *TableDefinition, resource *c
 		}
 		if uc.Resolver.Body != "" {
 			columnResolver, err := tb.buildResolverDefinition(table, &config.FunctionConfig{
-				Name:     template.ToGo(fmt.Sprintf("resolve%s%s%s", titler.String(resource.Domain), titler.String(inflection.Singular(table.Name)), titler.String(uc.Name))),
+				Name:     template.ToGoPrivate(fmt.Sprintf("resolve%s%s%s", titler.String(resource.Domain), titler.String(inflection.Singular(table.Name)), titler.String(uc.Name))),
 				Body:     uc.Resolver.Body,
 				Path:     path.Join(sdkPath, "provider/schema.ColumnResolver"),
 				Generate: true,
