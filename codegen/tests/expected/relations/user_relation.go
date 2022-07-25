@@ -72,7 +72,7 @@ func UserRelations() *schema.Table {
 						Name:        "test_column",
 						Description: "user defined column test",
 						Type:        schema.TypeJSON,
-						Resolver:    ResolveBaseUserRelationCustomTestColumn,
+						Resolver:    resolveBaseUserRelationCustomTestColumn,
 					},
 				},
 			},
@@ -96,6 +96,6 @@ func fetchBaseUserRelationUser(ctx context.Context, meta schema.ClientMeta, pare
 func fetchBaseUserRelationCustoms(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")
 }
-func ResolveBaseUserRelationCustomTestColumn(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+func resolveBaseUserRelationCustomTestColumn(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
 	panic("not implemented")
 }

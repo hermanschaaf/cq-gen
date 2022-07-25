@@ -3,12 +3,25 @@ package codegen
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMain(m *testing.M) {
+	// remove output from previous test runs
+	err := os.RemoveAll("./tests/output")
+	if err != nil {
+		panic("failed to remove output directory before tests:" + err.Error())
+	}
+
+	code := m.Run()
+
+	os.Exit(code)
+}
 
 func Test_Generate(t *testing.T) {
 	type test struct {

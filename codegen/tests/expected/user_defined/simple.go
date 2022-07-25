@@ -15,7 +15,7 @@ func Simples() *schema.Table {
 				Name:        "test_column",
 				Description: "user defined column test",
 				Type:        schema.TypeJSON,
-				Resolver:    ResolveUserDefinedSimpleTestColumn,
+				Resolver:    resolveUserDefinedSimpleTestColumn,
 			},
 			{
 				Name: "int_value",
@@ -41,6 +41,6 @@ func Simples() *schema.Table {
 func fetchUserDefinedSimples(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")
 }
-func ResolveUserDefinedSimpleTestColumn(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+func resolveUserDefinedSimpleTestColumn(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
 	panic("not implemented")
 }
