@@ -91,10 +91,6 @@ func (n NamedObject) Path() string {
 	return fmt.Sprintf("%s.%s", n.named.Obj().Pkg().Path(), n.named.Obj().Name())
 }
 
-func (n NamedObject) IsPointer() bool {
-	return false
-}
-
 type FieldObject struct {
 	originalPath string
 	source       DataSource
@@ -148,11 +144,6 @@ func (f FieldObject) Path() string {
 		return f.v.Name()
 	}
 	return fmt.Sprintf("%s.%s", f.v.Pkg().Path(), named.Obj().Name())
-}
-
-func (f FieldObject) IsPointer() bool {
-	_, isPointer := f.v.Type().(*types.Pointer)
-	return isPointer
 }
 
 func getSpecColumnDescription(parser source.DescriptionParser, spec *ast.TypeSpec, columnName string) string {

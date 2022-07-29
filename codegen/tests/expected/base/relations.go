@@ -3,8 +3,6 @@ package base
 import (
 	"context"
 
-	"github.com/cloudquery/cq-gen/codegen/tests"
-	"github.com/cloudquery/cq-provider-sdk/helpers"
 	"github.com/cloudquery/cq-provider-sdk/provider/schema"
 )
 
@@ -34,7 +32,7 @@ func Relations() *schema.Table {
 		Relations: []*schema.Table{
 			{
 				Name:     "test_base_relation_some_bases",
-				Resolver: fetchBaseRelationSomeBases,
+				Resolver: schema.PathTableResolver("SomeBases"),
 				Columns: []schema.Column{
 					{
 						Name:        "relation_cq_id",
@@ -59,7 +57,7 @@ func Relations() *schema.Table {
 			},
 			{
 				Name:     "test_base_relation_inner_some_bases",
-				Resolver: fetchBaseRelationInnerSomeBases,
+				Resolver: schema.PathTableResolver("Inner.SomeBases"),
 				Columns: []schema.Column{
 					{
 						Name:        "relation_cq_id",
@@ -84,7 +82,7 @@ func Relations() *schema.Table {
 			},
 			{
 				Name:     "test_base_relations",
-				Resolver: fetchBaseRelations,
+				Resolver: schema.PathTableResolver("Relations"),
 				Columns: []schema.Column{
 					{
 						Name:        "relation_cq_id",
@@ -100,7 +98,7 @@ func Relations() *schema.Table {
 				Relations: []*schema.Table{
 					{
 						Name:     "test_base_relation_some_bases",
-						Resolver: fetchBaseRelationSomeBases,
+						Resolver: schema.PathTableResolver("SomeBases"),
 						Columns: []schema.Column{
 							{
 								Name:        "relation_cq_id",
@@ -135,16 +133,4 @@ func Relations() *schema.Table {
 
 func fetchBaseRelations(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")
-}
-func fetchBaseRelationSomeBases(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	// This is a generated base implementation. You may edit it if necessary.
-	p := helpers.ToPointer(parent.Item).(*tests.RelationStruct)
-	res <- p.SomeBases
-	return nil
-}
-func fetchBaseRelationInnerSomeBases(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	// This is a generated base implementation. You may edit it if necessary.
-	p := helpers.ToPointer(parent.Item).(*tests.RelationStruct)
-	res <- p.Inner.SomeBases
-	return nil
 }

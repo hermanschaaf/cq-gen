@@ -3,8 +3,6 @@ package relations
 import (
 	"context"
 
-	"github.com/cloudquery/cq-gen/codegen/tests"
-	"github.com/cloudquery/cq-provider-sdk/helpers"
 	"github.com/cloudquery/cq-provider-sdk/provider/schema"
 )
 
@@ -21,7 +19,7 @@ func UserRelations() *schema.Table {
 		Relations: []*schema.Table{
 			{
 				Name:     "test_relations_user_relation_relations",
-				Resolver: fetchRelationsUserRelationRelations,
+				Resolver: schema.PathTableResolver("Relations"),
 				Columns: []schema.Column{
 					{
 						Name:        "user_relation_cq_id",
@@ -88,12 +86,6 @@ func UserRelations() *schema.Table {
 
 func fetchRelationsUserRelations(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")
-}
-func fetchRelationsUserRelationRelations(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	// This is a generated base implementation. You may edit it if necessary.
-	p := helpers.ToPointer(parent.Item).(*tests.SimpleRelation)
-	res <- p.Relations
-	return nil
 }
 func fetchBaseUserRelationUser(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")

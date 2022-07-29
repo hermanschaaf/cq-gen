@@ -1,15 +1,12 @@
 package codegen
 
 import (
-	"github.com/cloudquery/cq-gen/codegen/template"
 	"go/types"
 	"strings"
 
-	"github.com/zclconf/go-cty/cty"
-
-	"github.com/cloudquery/cq-provider-sdk/provider/schema"
-
 	"github.com/cloudquery/cq-gen/codegen/config"
+	"github.com/cloudquery/cq-provider-sdk/provider/schema"
+	"github.com/zclconf/go-cty/cty"
 )
 
 type TableDefinition struct {
@@ -34,9 +31,6 @@ type TableDefinition struct {
 
 	// Functions that were created by configuration request
 	Functions []*ResolverDefinition
-
-	// ExtraImports are additional imports that should be added when rendering the template
-	ExtraImports []template.Import
 
 	// parent table definition
 	parentTable *TableDefinition

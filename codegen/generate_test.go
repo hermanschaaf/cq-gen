@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +35,6 @@ func Test_Generate(t *testing.T) {
 		{Name: "simple", Config: "./tests/base.hcl", Domain: "base", ResourceName: "simple"},
 		{Name: "complex", Config: "./tests/base.hcl", Domain: "base", ResourceName: "complex"},
 		{Name: "relations", Config: "./tests/base.hcl", Domain: "base", ResourceName: "relations"},
-		{Name: "pointer_relations", Config: "./tests/base.hcl", Domain: "base", ResourceName: "pointer_relations"},
 		{Name: "columns", Config: "./tests/columns.hcl", Domain: "columns", ResourceName: "columns"},
 		{Name: "embedded_prefix_skip", Config: "./tests/columns.hcl", Domain: "columns", ResourceName: "embedded_prefix_skip"},
 		{Name: "embedded_rename", Config: "./tests/columns.hcl", Domain: "columns", ResourceName: "embedded_rename"},

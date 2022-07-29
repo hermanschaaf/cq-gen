@@ -27,7 +27,6 @@ type Object interface {
 	Parent() Object
 	Path() string
 	Exported() bool
-	IsPointer() bool
 }
 
 // DescriptionSource allows finding descriptions for given types based on pathing

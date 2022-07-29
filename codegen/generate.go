@@ -10,11 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zclconf/go-cty/cty"
-	"github.com/zclconf/go-cty/cty/gocty"
-
 	"github.com/cloudquery/cq-gen/codegen/config"
 	"github.com/cloudquery/cq-gen/codegen/template"
+	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/gocty"
 )
 
 //go:embed table.gotpl
@@ -51,7 +50,6 @@ func Generate(configPath, domain, resourceName, outputDir string) error {
 			Funcs: map[string]interface{}{
 				"call": Call,
 			},
-			Imports: resource.Table.ExtraImports,
 		})
 		if err != nil {
 			return err

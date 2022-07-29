@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cloudquery/cq-gen/code"
 	"github.com/creasty/defaults"
 	"github.com/zclconf/go-cty/cty"
-
-	"github.com/cloudquery/cq-gen/code"
 )
 
 type Config struct {
