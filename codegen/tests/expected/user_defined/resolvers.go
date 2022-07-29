@@ -28,7 +28,7 @@ func Resolvers() *schema.Table {
 				Name:        "test_column_templated",
 				Description: "user defined column test",
 				Type:        schema.TypeJSON,
-				Resolver:    ResolveUserDefinedResolverTestColumnTemplated,
+				Resolver:    resolveUserDefinedResolverTestColumnTemplated,
 			},
 			{
 				Name: "int_value",
@@ -54,6 +54,6 @@ func Resolvers() *schema.Table {
 func fetchUserDefinedResolvers(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")
 }
-func ResolveUserDefinedResolverTestColumnTemplated(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+func resolveUserDefinedResolverTestColumnTemplated(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
 	panic("test body")
 }

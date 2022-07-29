@@ -12,6 +12,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	// remove output from previous test runs
 	err := os.RemoveAll("./tests/output")
 	if err != nil {
 		panic("failed to remove output directory before tests:" + err.Error())
