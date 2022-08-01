@@ -1,7 +1,6 @@
 package codegen
 
 import (
-	_ "embed"
 	"fmt"
 	"go/types"
 	"os"
