@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// take a string in the form github.com/package/blah.Type and split it into package and type
+// PkgAndType takes a string in the form github.com/package/blah.Type and splits it into package and type
 func PkgAndType(name string) (string, string) {
 	parts := strings.Split(name, ".")
 	if len(parts) == 1 {
@@ -14,6 +14,15 @@ func PkgAndType(name string) (string, string) {
 	}
 
 	return strings.Join(parts[:len(parts)-1], "."), parts[len(parts)-1]
+}
+
+// PkgName takes an import string in the form github.com/package/blah and returns only the name, e.g. blah
+func PkgName(pkg string) string {
+	parts := strings.Split(pkg, "/")
+	if len(parts) == 1 {
+		return pkg
+	}
+	return parts[len(parts)-1]
 }
 
 var modsRegex = regexp.MustCompile(`^(\*|\[\])*`)

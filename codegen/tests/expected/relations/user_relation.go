@@ -19,7 +19,7 @@ func UserRelations() *schema.Table {
 		Relations: []*schema.Table{
 			{
 				Name:     "test_relations_user_relation_relations",
-				Resolver: fetchRelationsUserRelationRelations,
+				Resolver: schema.PathTableResolver("Relations"),
 				Columns: []schema.Column{
 					{
 						Name:        "user_relation_cq_id",
@@ -85,9 +85,6 @@ func UserRelations() *schema.Table {
 // ====================================================================================================================
 
 func fetchRelationsUserRelations(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	panic("not implemented")
-}
-func fetchRelationsUserRelationRelations(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")
 }
 func fetchBaseUserRelationUser(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {

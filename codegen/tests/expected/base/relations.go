@@ -32,7 +32,7 @@ func Relations() *schema.Table {
 		Relations: []*schema.Table{
 			{
 				Name:     "test_base_relation_some_bases",
-				Resolver: fetchBaseRelationSomeBases,
+				Resolver: schema.PathTableResolver("SomeBases"),
 				Columns: []schema.Column{
 					{
 						Name:        "relation_cq_id",
@@ -57,7 +57,7 @@ func Relations() *schema.Table {
 			},
 			{
 				Name:     "test_base_relation_inner_some_bases",
-				Resolver: fetchBaseRelationInnerSomeBases,
+				Resolver: schema.PathTableResolver("Inner.SomeBases"),
 				Columns: []schema.Column{
 					{
 						Name:        "relation_cq_id",
@@ -82,7 +82,7 @@ func Relations() *schema.Table {
 			},
 			{
 				Name:     "test_base_relations",
-				Resolver: fetchBaseRelations,
+				Resolver: schema.PathTableResolver("Relations"),
 				Columns: []schema.Column{
 					{
 						Name:        "relation_cq_id",
@@ -98,7 +98,7 @@ func Relations() *schema.Table {
 				Relations: []*schema.Table{
 					{
 						Name:     "test_base_relation_some_bases",
-						Resolver: fetchBaseRelationSomeBases,
+						Resolver: schema.PathTableResolver("SomeBases"),
 						Columns: []schema.Column{
 							{
 								Name:        "relation_cq_id",
@@ -132,11 +132,5 @@ func Relations() *schema.Table {
 // ====================================================================================================================
 
 func fetchBaseRelations(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	panic("not implemented")
-}
-func fetchBaseRelationSomeBases(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
-	panic("not implemented")
-}
-func fetchBaseRelationInnerSomeBases(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
 	panic("not implemented")
 }

@@ -7,22 +7,19 @@ import (
 	"path"
 	"strings"
 
-	"github.com/thoas/go-funk"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
-	"github.com/cloudquery/cq-provider-sdk/provider/schema"
-	"github.com/hashicorp/go-hclog"
-	"github.com/iancoleman/strcase"
-	"github.com/jinzhu/inflection"
-
 	"github.com/cloudquery/cq-gen/code"
 	"github.com/cloudquery/cq-gen/codegen/config"
 	"github.com/cloudquery/cq-gen/codegen/source"
 	"github.com/cloudquery/cq-gen/codegen/template"
 	"github.com/cloudquery/cq-gen/naming"
 	"github.com/cloudquery/cq-gen/rewrite"
+	"github.com/cloudquery/cq-provider-sdk/provider/schema"
+	"github.com/hashicorp/go-hclog"
+	"github.com/iancoleman/strcase"
+	"github.com/jinzhu/inflection"
+	"github.com/thoas/go-funk"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -31,16 +28,19 @@ const (
 	MaxColumnLength       = 63
 )
 
-// BuildMeta is information passed when the TableBuilder is traversing over a source.Object to build it's table
+// BuildMeta is information passed when the TableBuilder is traversing over a source.Object to build its table
 type BuildMeta struct {
 	// Depth represents the logical depth traversal in the build, the depth is used to avoid infinite recursion
 	Depth int
 	// ColumnPath is the logical traversal on the column, the path extends if it hits embedded objects.
 	ColumnPath string
-	// FieldPath is the dot notated path of the resource this expected, this is used for PathResolvers
+	// FieldPath is the dot notated path of the resource that is expected, this is used for PathResolvers
 	FieldPath string
 	// FieldParts is a list of fields we traversed
 	FieldParts []string
+	// BaseFieldIndex stores the index of the last base relation. It is used in conjunction with
+	// FieldParts to create the list of accessors when generating resolvers.
+	BaseFieldIndex int
 	// fullColumnPath saves full path of column regardless of prefix skips, this allows users to define
 	// either only column name or full embedded path
 	fullColumnPath string
@@ -49,6 +49,7 @@ type BuildMeta struct {
 func BuildColumnMeta(field source.Object, parentMeta BuildMeta, cfg config.ColumnConfig) BuildMeta {
 	meta := BuildMeta{
 		Depth:          0,
+		BaseFieldIndex: 0,
 		ColumnPath:     field.Name(),
 		FieldPath:      field.Name(),
 		FieldParts:     make([]string, len(parentMeta.FieldParts)),
@@ -108,10 +109,11 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 		IgnoreInTests: resourceCfg.IgnoreInTests,
 		path:          resourceCfg.Path,
 	}
+
 	// will only mark table function as copied
 	tb.rewriter.GetFunctionBody(table.TableFuncName, "")
 	tb.log.Debug("Building table", "table", table.TableName)
-	if err := tb.buildTableFunctions(table, resourceCfg); err != nil {
+	if err := tb.buildTableFunctions(table, resourceCfg, meta); err != nil {
 		return nil, err
 	}
 
@@ -127,6 +129,13 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 		return nil, err
 	}
 
+	// base field becomes this table
+	if len(meta.FieldParts) == 0 {
+		meta.BaseFieldIndex = 0
+	} else {
+		meta.BaseFieldIndex = len(meta.FieldParts) - 1
+	}
+
 	if !resourceCfg.DisableReadDescriptions {
 		if table.Description == "" {
 			meta.FieldParts = append(meta.FieldParts, resourceCfg.DescriptionPathParts...)
@@ -140,7 +149,6 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 		} else {
 			meta.FieldParts = append(meta.FieldParts, obj.Name())
 		}
-
 	}
 
 	if err := tb.buildColumns(table, obj, resourceCfg, meta); err != nil {
@@ -154,11 +162,16 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 	return table, nil
 }
 
-func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *config.ResourceConfig) error {
+func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *config.ResourceConfig, meta BuildMeta) error {
 	var err error
-	if resource.Resolver != nil {
+	hasResolver := resource.Resolver != nil
+	canGenerateResolverImplementation := table.parentTable != nil && len(meta.FieldParts) > 0
+	switch {
+	case hasResolver:
 		table.Resolver, err = tb.buildResolverDefinition(table, resource.Resolver)
-	} else {
+	case canGenerateResolverImplementation:
+		table.Resolver, err = tb.getPathTableResolver(meta)
+	default:
 		table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
 			Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
 			Body:     defaultImplementation,
@@ -197,6 +210,17 @@ func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *con
 	}
 
 	return nil
+}
+
+// getPathTableResolver uses PathTableResolver to generate a resolver for relations
+func (tb TableBuilder) getPathTableResolver(meta BuildMeta) (*ResolverDefinition, error) {
+	start, end := meta.BaseFieldIndex+1, len(meta.FieldParts)
+	signatureName := "schema.PathTableResolver"
+	fieldPath := strings.Join(meta.FieldParts[start:end], ".")
+	return &ResolverDefinition{
+		Type:      nil,
+		Signature: fmt.Sprintf("%s(\"%s\")", signatureName, fieldPath),
+	}, nil
 }
 
 // buildColumns iterates over every field in source.Object adding a ColumnDefinition or RelationDefinition based on the type
@@ -525,7 +549,8 @@ func (tb TableBuilder) buildTableRelation(parentTable *TableDefinition, cfg *con
 		descriptionParsers: tb.descriptionParsers,
 	}
 
-	rel, err := innerBuilder.BuildTable(parentTable, &cfg.ResourceConfig, BuildMeta{Depth: meta.Depth, ColumnPath: "", FieldPath: "", FieldParts: meta.FieldParts})
+	newMeta := BuildMeta{Depth: meta.Depth, BaseFieldIndex: meta.BaseFieldIndex, ColumnPath: "", FieldPath: "", FieldParts: meta.FieldParts}
+	rel, err := innerBuilder.BuildTable(parentTable, &cfg.ResourceConfig, newMeta)
 	if err != nil {
 		return err
 	}
@@ -557,7 +582,9 @@ func (tb TableBuilder) getDescription(obj source.Object, description string, met
 	}
 	// if alternative description source is defined
 	if tb.descriptionSource != nil { //nolint
-		parts := append(meta.FieldParts, obj.Name()) //nolint
+		parts := make([]string, 0, len(meta.FieldParts)+1)
+		copy(parts, meta.FieldParts)
+		parts = append(parts, obj.Name()) //nolint
 		d, err := tb.descriptionSource.FindDescription(parts...)
 		if err != nil {
 			return ""
