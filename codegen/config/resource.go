@@ -37,6 +37,9 @@ func decodeResourceBody(ctx *hcl.EvalContext, body hcl.Body, labels []string) (*
 	if attr, exists := content.Attributes["disable_pluralize"]; exists {
 		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &resource.NoPluralize)...)
 	}
+	if attr, exists := content.Attributes["description_path_parts"]; exists {
+		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &resource.DescriptionPathParts)...)
+	}
 	if attr, exists := content.Attributes["ignore_in_tests"]; exists {
 		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &resource.IgnoreInTests)...)
 	}

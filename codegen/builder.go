@@ -131,7 +131,6 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 	}
 
 	// base field becomes this table
-
 	if len(meta.FieldParts) == 0 {
 		meta.BaseFieldIndex = 0
 	} else {
