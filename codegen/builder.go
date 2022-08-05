@@ -165,11 +165,12 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *config.ResourceConfig, meta BuildMeta) error {
 	var err error
 	hasResolver := resource.Resolver != nil
+	forceCustomGeneration := hasResolver && resource.Resolver.Generate
 	canGenerateResolverImplementation := table.parentTable != nil && len(meta.FieldParts) > 0
 	switch {
-	case hasResolver:
+	case hasResolver && !forceCustomGeneration:
 		table.Resolver, err = tb.buildResolverDefinition(table, resource.Resolver)
-	case canGenerateResolverImplementation:
+	case canGenerateResolverImplementation && !forceCustomGeneration:
 		table.Resolver, err = tb.getPathTableResolver(meta)
 	default:
 		table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
