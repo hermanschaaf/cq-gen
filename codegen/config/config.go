@@ -114,7 +114,7 @@ type FunctionConfig struct {
 	// Body to insert when function is generated, use with care, auto importing isn't supported in user defined bodies
 	Body string `hcl:"body,optional"`
 	// Path to a function to use.
-	Path string `hcl:"path"`
+	Path string `hcl:"path,optional"`
 	// Generate tells cq-gen to create the function code in template, usually set automatically.
 	// Setting to true will force function generation in template.
 	Generate bool `hcl:"generate,optional"`
