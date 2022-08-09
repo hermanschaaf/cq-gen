@@ -89,7 +89,7 @@ func buildResources(cfg *config.Config, domain string, resourceName string) ([]*
 		}
 		generateHeader := ""
 		if cfg.AddGenerate {
-			generateHeader = fmt.Sprintf("//go:generate cq-gen --resource %s --config %s --output .", resourceName, cfg.Path)
+			generateHeader = fmt.Sprintf("//go:generate cq-gen --resource %s --config %s --output .", resource.Name, cfg.Path)
 		}
 
 		resources = append(resources, &ResourceDefinition{
