@@ -44,6 +44,8 @@ type BuildMeta struct {
 	// fullColumnPath saves full path of column regardless of prefix skips, this allows users to define
 	// either only column name or full embedded path
 	fullColumnPath string
+	// Whether this is a user defined object relation
+	userRelation bool
 }
 
 func BuildColumnMeta(field source.Object, parentMeta BuildMeta, cfg config.ColumnConfig) BuildMeta {
@@ -249,7 +251,7 @@ func (tb TableBuilder) buildColumn(table *TableDefinition, field source.Object, 
 		Type:     0,
 		Resolver: nil,
 	}
-
+	tb.log.Debug("finding column configuration", "name", colDef.Name, "resource", resourceCfg.Name, "user_relation", meta.userRelation)
 	// check if configuration wants column to be skipped
 	cfg := resourceCfg.GetColumnConfig(colDef.Name, meta.fullColumnPath)
 	if cfg.Skip {
@@ -518,7 +520,7 @@ func (tb TableBuilder) buildTableRelations(parentTable *TableDefinition, cfg *co
 		if cfg.LimitDepth > 0 {
 			relCfg.LimitDepth = cfg.LimitDepth
 		}
-		if err := tb.buildTableRelation(parentTable, &relCfg, BuildMeta{}); err != nil {
+		if err := tb.buildTableRelation(parentTable, &relCfg, BuildMeta{userRelation: true}); err != nil {
 			return err
 		}
 	}
