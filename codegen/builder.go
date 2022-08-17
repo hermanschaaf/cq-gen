@@ -115,6 +115,9 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 	// will only mark table function as copied
 	tb.rewriter.GetFunctionBody(table.TableFuncName, "")
 	tb.log.Debug("Building table", "table", table.TableName)
+	if len(table.TableName) > 63 {
+		return nil, fmt.Errorf("table name %q longer than 63 characters. Use skip_prefix or rename to shorten it", table.TableName)
+	}
 	if err := tb.buildTableFunctions(table, resourceCfg, meta); err != nil {
 		return nil, err
 	}
