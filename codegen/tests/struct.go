@@ -46,3 +46,15 @@ type SimpleRelation struct {
 type OtherStruct struct {
 	OtherField int
 }
+
+type DeepRelationStruct struct {
+	Relations []DeepRelationalRelation
+}
+
+type DeepRelationalRelation struct {
+	Relations []DeepDeepRelationalRelation
+}
+
+type DeepDeepRelationalRelation struct {
+	Relations []RelationalRelation
+}

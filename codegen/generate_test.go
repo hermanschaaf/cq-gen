@@ -50,7 +50,8 @@ func Test_Generate(t *testing.T) {
 		{Name: "relations_user_relations", Config: "./tests/relations.hcl", Domain: "relations", ResourceName: "user_relation"},
 		// Bad configurations
 		{Name: "bad_duplicate_resource", Config: "./tests/bad_config.hcl", Domain: "bad", ResourceName: "duplicate", ExpectError: fmt.Errorf("failed to build resources: duplicate resource found. Domain: bad Resource: duplicate")},
-		{Name: "bad_table_name_too_long", Config: "./tests/bad_config.hcl", Domain: "bad", ResourceName: "long_table_name_with_more_than_63_characters_which_is_too_long", ExpectError: fmt.Errorf("failed to build resources: table name \"test_bad_long_table_name_with_more_than_63_characters_which_is_too_long\" longer than 63 characters. Use skip_prefix or rename to shorten it")},
+		{Name: "bad_table_name_too_long", Config: "./tests/bad_config.hcl", Domain: "bad", ResourceName: "long_table_name_with_more_than_63_characters_which_is_too_long", ExpectError: fmt.Errorf("failed to build resources: table name \"test_bad_long_table_name_with_more_than_63_characters_which_is_too_long\" longer than 63 characters")},
+		{Name: "bad_relation_table_name_too_long", Config: "./tests/bad_config.hcl", Domain: "bad", ResourceName: "table_with_relation", ExpectError: fmt.Errorf("failed to build resources: table name \"test_bad_table_with_relation_relation_relation_relation_some_bases\" longer than 63 characters. Path: relations.relations.relations.some_bases")},
 	}
 	t.Parallel()
 	for _, tc := range generatorTests {
