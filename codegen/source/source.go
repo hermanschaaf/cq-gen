@@ -70,5 +70,5 @@ func (p *UserDescriptionParser) Parse(description string) string {
 	for _, replace := range p.replaceWords {
 		description = strings.ReplaceAll(description, replace, "")
 	}
-	return strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(description, ".", ""), "\n", " "))
+	return strings.TrimSpace(strings.ReplaceAll(description, "\n", " "))
 }
