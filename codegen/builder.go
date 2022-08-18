@@ -26,6 +26,7 @@ const (
 	defaultImplementation = `panic("not implemented")`
 	sdkPath               = "github.com/cloudquery/cq-provider-sdk"
 	MaxColumnLength       = 63
+	MaxTableLength        = 63
 )
 
 // BuildMeta is information passed when the TableBuilder is traversing over a source.Object to build its table
@@ -115,6 +116,13 @@ func (tb TableBuilder) BuildTable(parentTable *TableDefinition, resourceCfg *con
 	// will only mark table function as copied
 	tb.rewriter.GetFunctionBody(table.TableFuncName, "")
 	tb.log.Debug("Building table", "table", table.TableName)
+	if len(table.TableName) > MaxTableLength {
+		msg := "table name %q longer than %d characters"
+		if meta.fullColumnPath != "" {
+			msg += ". Path: " + meta.fullColumnPath
+		}
+		return nil, fmt.Errorf(msg, table.TableName, MaxTableLength)
+	}
 	if err := tb.buildTableFunctions(table, resourceCfg, meta); err != nil {
 		return nil, err
 	}
@@ -311,6 +319,11 @@ func (tb TableBuilder) buildColumn(table *TableDefinition, field source.Object, 
 
 		// increase build depth
 		meta.Depth += 1
+		if len(meta.fullColumnPath) == 0 {
+			meta.fullColumnPath = colDef.Name
+		} else {
+			meta.fullColumnPath += "." + colDef.Name
+		}
 		meta.FieldParts = append(meta.FieldParts, field.Name())
 		if err := tb.buildTableRelation(table, relationCfg, meta); err != nil {
 			return err
@@ -552,7 +565,7 @@ func (tb TableBuilder) buildTableRelation(parentTable *TableDefinition, cfg *con
 		descriptionParsers: tb.descriptionParsers,
 	}
 
-	newMeta := BuildMeta{Depth: meta.Depth, BaseFieldIndex: meta.BaseFieldIndex, ColumnPath: "", FieldPath: "", FieldParts: meta.FieldParts}
+	newMeta := BuildMeta{Depth: meta.Depth, BaseFieldIndex: meta.BaseFieldIndex, ColumnPath: "", FieldPath: "", FieldParts: meta.FieldParts, fullColumnPath: meta.fullColumnPath}
 	rel, err := innerBuilder.BuildTable(parentTable, &cfg.ResourceConfig, newMeta)
 	if err != nil {
 		return err
