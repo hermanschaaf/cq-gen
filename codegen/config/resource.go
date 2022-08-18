@@ -172,6 +172,12 @@ func decodeFunctionBlock(ctx *hcl.EvalContext, block *hcl.Block) (*FunctionConfi
 	if attr, exists := content.Attributes["body"]; exists {
 		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &rel.Body)...)
 	}
+	if attr, exists := content.Attributes["body_template_path"]; exists {
+		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &rel.BodyTemplatePath)...)
+	}
+	if attr, exists := content.Attributes["body_template_params"]; exists {
+		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &rel.BodyTemplateParams)...)
+	}
 	if attr, exists := content.Attributes["path"]; exists {
 		diags = append(diags, gohcl.DecodeExpression(attr.Expr, ctx, &rel.Path)...)
 	}

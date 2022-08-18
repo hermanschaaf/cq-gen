@@ -113,6 +113,10 @@ type FunctionConfig struct {
 	Name string `hcl:"name,label"`
 	// Body to insert when function is generated, use with care, auto importing isn't supported in user defined bodies
 	Body string `hcl:"body,optional"`
+	// BodyTemplatePath should reference a Go string that represents a template
+	BodyTemplatePath string `hcl:"body_template_path,optional"`
+	// BodyTemplateParams
+	BodyTemplateParams map[string]string `hcl:"body_template_params,optional"`
 	// Path to a function to use.
 	Path string `hcl:"path,optional"`
 	// Generate tells cq-gen to create the function code in template, usually set automatically.

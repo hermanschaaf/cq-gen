@@ -5,7 +5,9 @@ import (
 	"go/types"
 	"os"
 	"path"
+	"strconv"
 	"strings"
+	textTemplate "text/template"
 
 	"github.com/cloudquery/cq-gen/code"
 	"github.com/cloudquery/cq-gen/codegen/config"
@@ -175,11 +177,20 @@ func (tb TableBuilder) buildTableFunctions(table *TableDefinition, resource *con
 	case canGenerateResolverImplementation && !forceCustomGeneration:
 		table.Resolver, err = tb.getPathTableResolver(meta)
 	default:
+		var body, bodyTemplatePath string
+		var bodyTemplateParams map[string]string
+		if hasResolver {
+			body = resource.Resolver.Body
+			bodyTemplatePath = resource.Resolver.BodyTemplatePath
+			bodyTemplateParams = resource.Resolver.BodyTemplateParams
+		}
 		table.Resolver, err = tb.buildResolverDefinition(table, &config.FunctionConfig{
-			Name:     strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
-			Body:     defaultImplementation,
-			Path:     path.Join(sdkPath, "provider/schema.TableResolver"),
-			Generate: true, // Table functions are always generated, setting this to true will cause duplicates
+			Name:               strcase.ToLowerCamel(fmt.Sprintf("fetch%s%s", titler.String(resource.Domain), titler.String(table.Name))),
+			Body:               body,
+			BodyTemplatePath:   bodyTemplatePath,
+			BodyTemplateParams: bodyTemplateParams,
+			Path:               path.Join(sdkPath, "provider/schema.TableResolver"),
+			Generate:           true, // Table functions are always generated, setting this to true will cause duplicates
 		})
 	}
 	if err != nil {
@@ -414,10 +425,18 @@ func (tb TableBuilder) buildResolverDefinition(table *TableDefinition, cfg *conf
 		return nil, fmt.Errorf("%s not a function", cfg.Path)
 	}
 
+	// build resolver body. body_template_path overrides hardcoded body
 	body := defaultImplementation
 	if cfg.Body != "" {
 		body = cfg.Body
 	}
+	if cfg.BodyTemplatePath != "" {
+		body, err = tb.readBodyFromTemplatePath(cfg.BodyTemplatePath, cfg.BodyTemplateParams)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	funcBody := tb.rewriter.GetFunctionBody(cfg.Name, body)
 	if funcBody == defaultImplementation {
 		tb.log.Debug("Using default implementation for function", "function", cfg.Name)
@@ -438,6 +457,45 @@ func (tb TableBuilder) buildResolverDefinition(table *TableDefinition, cfg *conf
 		table.Functions = append(table.Functions, def)
 	}
 	return def, nil
+}
+
+func (tb TableBuilder) readBodyFromTemplatePath(path string, params map[string]string) (string, error) {
+	var err error
+	tmpl, err := tb.finder.FindObjectFromName(path)
+	if err != nil {
+		return "", err
+	}
+	var tmplValue string
+	switch t := tmpl.Type().(type) {
+	case *types.Basic:
+		kind := t.Kind()
+		if kind != types.UntypedString {
+			return "", fmt.Errorf("%s not a string", path)
+		}
+		switch v := tmpl.(type) {
+		case *types.Const:
+			tmplValue, err = strconv.Unquote(v.Val().String())
+			if err != nil {
+				return "", fmt.Errorf("failed to unquote body template: %w", err)
+			}
+		default:
+			return "", fmt.Errorf("%s not a constant string", path)
+		}
+
+	default:
+		return "", fmt.Errorf("%s not a string", path)
+	}
+	t := textTemplate.New("")
+	tt, ttErr := t.Parse(tmplValue)
+	if ttErr != nil {
+		return "", ttErr
+	}
+	b := new(strings.Builder)
+	execErr := tt.Execute(b, params)
+	if execErr != nil {
+		return "", execErr
+	}
+	return strings.Trim(b.String(), "\n "), nil
 }
 
 func (tb TableBuilder) SetColumnResolver(tableDef *TableDefinition, field source.Object, colDef *ColumnDefinition, cfg config.ColumnConfig, meta BuildMeta) error {

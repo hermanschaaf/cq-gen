@@ -57,4 +57,14 @@ resource "test" "resolvers" "with_params" {
   }
 }
 
-
+// test resolver body templates
+resource "test" "resolvers" "with_template" {
+  path = "github.com/cloudquery/cq-gen/codegen/tests.BaseStruct"
+  resolver "templated_resolver" {
+    generate = true
+    body_template_path = "github.com/cloudquery/cq-gen/codegen/tests.SimpleTemplate"
+    body_template_params = {
+      "CustomMessage": "hello from template params"
+    }
+  }
+}

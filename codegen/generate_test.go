@@ -44,6 +44,7 @@ func Test_Generate(t *testing.T) {
 		{Name: "resolvers_user_defined", Config: "./tests/resolvers.hcl", Domain: "resolvers", ResourceName: "user_defined"},
 		{Name: "resolvers_rename", Config: "./tests/resolvers.hcl", Domain: "resolvers", ResourceName: "rename_with_resolver"},
 		{Name: "with_params", Config: "./tests/resolvers.hcl", Domain: "resolvers", ResourceName: "with_params"},
+		{Name: "with_template", Config: "./tests/resolvers.hcl", Domain: "resolvers", ResourceName: "with_template"},
 		{Name: "user_defined_simple", Config: "./tests/user_defined.hcl", Domain: "user_defined", ResourceName: "simple"},
 		{Name: "user_defined_resolvers", Config: "./tests/user_defined.hcl", Domain: "user_defined", ResourceName: "resolvers"},
 		{Name: "relations_rename", Config: "./tests/relations.hcl", Domain: "relations", ResourceName: "rename"},
