@@ -12,6 +12,7 @@ func TestDefaultDescriptionParser_Parse(t *testing.T) {
 		{give: "sentence 1   .  ", want: "sentence 1"},
 		{give: "sentence 1. sentence 2", want: "sentence 1"},
 		{give: "sentence 1. sentence 2. sentence 3", want: "sentence 1"},
+		{give: "sentence 1.\nsentence 2", want: "sentence 1"},
 	}
 	p := DefaultDescriptionParser{}
 	for _, tc := range cases {
