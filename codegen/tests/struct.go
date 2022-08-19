@@ -1,5 +1,7 @@
 package tests
 
+import "time"
+
 type BaseStruct struct {
 	IntValue  int
 	BoolValue bool
@@ -57,4 +59,19 @@ type DeepRelationalRelation struct {
 
 type DeepDeepRelationalRelation struct {
 	Relations []RelationalRelation
+}
+
+// DescriptionStruct describes itself as a struct.
+// Also, a second sentence.
+type DescriptionStruct struct {
+	// Simple is a simple description
+	Simple string
+
+	// Value is a string. It has more properties, but we will
+	// only tell you that it is a string. This is to make sure we have
+	// multiple sentences.
+	Complex string
+
+	// A sentence with a full stop that should get removed.
+	CreatedAt *time.Time
 }

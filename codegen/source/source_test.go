@@ -2,6 +2,27 @@ package source
 
 import "testing"
 
+func TestDefaultDescriptionParser_Parse(t *testing.T) {
+	cases := []struct {
+		give string
+		want string
+	}{
+		{give: "sentence 1.", want: "sentence 1"},
+		{give: "sentence 1. ", want: "sentence 1"},
+		{give: "sentence 1   .  ", want: "sentence 1"},
+		{give: "sentence 1. sentence 2", want: "sentence 1"},
+		{give: "sentence 1. sentence 2. sentence 3", want: "sentence 1"},
+		{give: "sentence 1.\nsentence 2", want: "sentence 1"},
+	}
+	p := DefaultDescriptionParser{}
+	for _, tc := range cases {
+		got := p.Parse(tc.give)
+		if got != tc.want {
+			t.Errorf("Parse(%q) = %q, want %q", tc.give, got, tc.want)
+		}
+	}
+}
+
 func TestNewUserDescriptionParser(t *testing.T) {
 	type expectation struct {
 		give string

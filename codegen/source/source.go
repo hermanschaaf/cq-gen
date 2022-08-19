@@ -42,8 +42,14 @@ type DescriptionParser interface {
 type DefaultDescriptionParser struct{}
 
 func (p *DefaultDescriptionParser) Parse(description string) string {
-	data := strings.SplitN(description, ". ", 2)[0]
-	return strings.TrimSpace(strings.ReplaceAll(data, "\n", " "))
+	// replace newlines with spaces
+	data := strings.ReplaceAll(description, "\n", " ")
+	// use only the first sentence from the description
+	data = strings.SplitN(data, ". ", 2)[0]
+	// trim trailing whitespace and fullstops
+	data = strings.TrimRight(data, " .")
+	// trim all remaining spaces
+	return strings.TrimSpace(data)
 }
 
 type UserDescriptionParser struct {
