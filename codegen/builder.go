@@ -2,10 +2,10 @@ package codegen
 
 import (
 	"fmt"
+	"go/constant"
 	"go/types"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	textTemplate "text/template"
 
@@ -441,6 +441,11 @@ func (tb TableBuilder) buildResolverDefinition(table *TableDefinition, cfg *conf
 	if funcBody == defaultImplementation {
 		tb.log.Debug("Using default implementation for function", "function", cfg.Name)
 	}
+	if cfg.BodyTemplatePath != "" {
+		// templated bodies should always use the templated implementation,
+		// and changes to the generated function body should be overwritten
+		funcBody = body
+	}
 	def := &ResolverDefinition{
 		Name:      cfg.Name,
 		Body:      funcBody,
@@ -469,15 +474,12 @@ func (tb TableBuilder) readBodyFromTemplatePath(path string, params map[string]s
 	switch t := tmpl.Type().(type) {
 	case *types.Basic:
 		kind := t.Kind()
-		if kind != types.UntypedString {
+		if kind != types.UntypedString && kind != types.String {
 			return "", fmt.Errorf("%s not a string", path)
 		}
 		switch v := tmpl.(type) {
 		case *types.Const:
-			tmplValue, err = strconv.Unquote(v.Val().String())
-			if err != nil {
-				return "", fmt.Errorf("failed to unquote body template: %w", err)
-			}
+			tmplValue = constant.StringVal(v.Val())
 		default:
 			return "", fmt.Errorf("%s not a constant string", path)
 		}
@@ -491,11 +493,12 @@ func (tb TableBuilder) readBodyFromTemplatePath(path string, params map[string]s
 		return "", ttErr
 	}
 	b := new(strings.Builder)
+	params["TemplatePath"] = path
 	execErr := tt.Execute(b, params)
 	if execErr != nil {
 		return "", execErr
 	}
-	return strings.Trim(b.String(), "\n "), nil
+	return strings.Trim(b.String(), " "), nil
 }
 
 func (tb TableBuilder) SetColumnResolver(tableDef *TableDefinition, field source.Object, colDef *ColumnDefinition, cfg config.ColumnConfig, meta BuildMeta) error {

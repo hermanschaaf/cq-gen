@@ -11,6 +11,7 @@ package aws
 //    InputAttributes: {"Example": "\"value\""}
 //    NewPaginator: NewGetGroupsPaginator
 const PaginatorTemplate = `
+// GENERATED from {{.TemplatePath}}. Do not edit.
 {{$NewPaginator := .NewPaginator}}
 {{- if not $NewPaginator -}}
 	{{$NewPaginator = print "NewGet" .ReadAttribute "Paginator"}}

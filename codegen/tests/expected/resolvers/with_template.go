@@ -33,5 +33,6 @@ func WithTemplates() *schema.Table {
 // ====================================================================================================================
 
 func fetchResolversWithTemplates(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
+	// GENERATED. Do not edit.
 	panic("hello from template params")
 }
